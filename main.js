@@ -514,12 +514,17 @@
 
     function startLenis() {
         try {
+            // Detect iOS Safari - Lenis smooth scroll fights iOS native momentum scroll
+            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
             lenis = new Lenis({
                 duration: 1.1,
                 easing: function(t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
-                smoothWheel: true,
+                smoothWheel: !isIOS,          // disable on iOS - native scroll is smoother
+                smoothTouch: false,            // always off - causes jank on iOS
                 wheelMultiplier: 1.0,
-                touchMultiplier: 1.5
+                touchMultiplier: isIOS ? 1.0 : 1.5
             });
             function raf(time) {
                 lenis.raf(time);
@@ -1093,14 +1098,25 @@
     ========================================= */
     function initFadeIn() {
         var loader = document.getElementById('page-loader');
-        // Remove loading state → triggers fade-in transition
-        document.body.classList.remove('loading');
+
+        function revealPage() {
+            document.body.classList.remove('loading');
+            document.body.classList.add('fade-in');
+            if (loader) loader.classList.remove('active');
+        }
+
+        // Double-rAF ensures paint before class swap on all browsers incl. iOS Safari
         requestAnimationFrame(function() {
-            requestAnimationFrame(function() {
-                document.body.classList.add('fade-in');
-                if (loader) loader.classList.remove('active');
-            });
+            requestAnimationFrame(revealPage);
         });
+
+        // Hard safety net: if JS errors caused revealPage to not fire, force visible after 2s
+        // This prevents permanent blank/black screen on iOS Safari
+        setTimeout(function() {
+            if (!document.body.classList.contains('fade-in')) {
+                document.body.style.opacity = '1';
+            }
+        }, 2000);
 
         window.addEventListener('pageshow', function (e) {
             document.body.classList.remove('fade-out', 'loading');
@@ -3711,12 +3727,14 @@ if (document.getElementById('next-step-btn')) {
     function initLenis() {
         if (typeof Lenis === 'undefined') return;
         try {
+            var isIOScp = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             var lenisInstance = new Lenis({
                 duration: 1.1,
                 easing: function(t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
-                smoothWheel: true,
+                smoothWheel: !isIOScp,
+                smoothTouch: false,
                 wheelMultiplier: 1.0,
-                touchMultiplier: 1.5
+                touchMultiplier: isIOScp ? 1.0 : 1.5
             });
             function raf(time) {
                 lenisInstance.raf(time);
