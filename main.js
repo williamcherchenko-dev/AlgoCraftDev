@@ -449,7 +449,16 @@
     /* =========================================
        DOM READY
     ========================================= */
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            init();
+        } catch(e) {
+            console.error('AlgoCraftDev init error:', e);
+            // Safety: always reveal the page even if init crashed
+            document.body.style.opacity = '1';
+            document.body.classList.add('fade-in');
+        }
+    });
 
     function init() {
         initEmailJS();
@@ -527,7 +536,13 @@
                 touchMultiplier: isIOS ? 1.0 : 1.5
             });
             function raf(time) {
-                lenis.raf(time);
+                try {
+                    lenis.raf(time);
+                } catch(e) {
+                    console.warn('Lenis raf error, stopping loop:', e);
+                    lenis = null;
+                    return; // stop the loop
+                }
                 requestAnimationFrame(raf);
             }
             requestAnimationFrame(raf);
@@ -3737,7 +3752,12 @@ if (document.getElementById('next-step-btn')) {
                 touchMultiplier: isIOScp ? 1.0 : 1.5
             });
             function raf(time) {
-                lenisInstance.raf(time);
+                try {
+                    lenisInstance.raf(time);
+                } catch(e) {
+                    console.warn('Lenis raf error on custom page:', e);
+                    return;
+                }
                 requestAnimationFrame(raf);
             }
             requestAnimationFrame(raf);
