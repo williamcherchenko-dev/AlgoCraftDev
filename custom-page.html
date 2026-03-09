@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Customize Your Website Package | AlgoCraftDev</title>
+
+    <meta name="description"
+        content="Customize your AlgoCraftDev website package with extra features tailored to your business needs.">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#0d0d15">
+    <meta name="color-scheme" content="dark">
+    <link rel="canonical" href="https://algocraftdev.com/custom-page.html">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Customize Your Website Package | AlgoCraftDev">
+    <meta property="og:description"
+        content="Customize your AlgoCraftDev website package with extra features tailored to your business needs.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://algocraftdev.com/custom-page.html">
+    <meta property="og:image" content="https://algocraftdev.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Customize Your Website Package | AlgoCraftDev">
+    <meta name="twitter:description"
+        content="Customize your AlgoCraftDev website package with extra features tailored to your business needs.">
+    <meta name="twitter:image" content="https://algocraftdev.com/og-image.jpg">
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96x96.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="web-app-manifest-192x192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="web-app-manifest-512x512.png">
+    <link rel="manifest" href="site.webmanifest">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="main.css">
+</head>
+
+
+<body class="loading">
+    <div class="page-loader" id="page-loader" aria-hidden="true">
+        <div class="loader-spinner"></div>
+    </div>
+
+    <a href="#custom-title" class="skip-link">Skip to main content</a>
+
+    <div class="blob-wrapper">
+        <div class="drop drop-1">
+            <div class="drop-inner"></div>
+            <div class="drop-specular"></div>
+            <div class="drop-caustic"></div>
+        </div>
+        <div class="drop drop-2">
+            <div class="drop-inner"></div>
+            <div class="drop-specular"></div>
+            <div class="drop-caustic"></div>
+        </div>
+        <div class="drop drop-3">
+            <div class="drop-inner"></div>
+            <div class="drop-specular"></div>
+            <div class="drop-caustic"></div>
+        </div>
+        <div class="drop drop-4">
+            <div class="drop-inner"></div>
+            <div class="drop-specular"></div>
+            <div class="drop-caustic"></div>
+        </div>
+    </div>
+
+    <!--
+        back-home-btn: <button type="button"> is correct here because
+        custom-page.js handles the click with its own navigation logic.
+        type="button" prevents any accidental form-submit behaviour.
+    -->
+    <header class="custom-nav">
+        <a href="index.html" class="logo" aria-label="Go to AlgoCraftDev homepage">AlgoCraftDev</a>
+        <button type="button" id="back-home-btn" class="pill-action" aria-label="Go back to home page">
+            Back to Home
+            <i data-lucide="arrow-left"></i>
+        </button>
+    </header>
+
+    <main class="custom-page-wrapper">
+        <section class="custom-header" aria-labelledby="custom-title">
+            <div class="section-intro hero-size">
+                <div class="section-dots"><span></span><span></span><span></span></div>
+                <div class="badge">&lt;custom builder /&gt;</div>
+                <h1 id="custom-title" class="custom-title-3d">Customize your package</h1>
+                <p id="custom-subtitle" class="section-sub">
+                    We've loaded your selected service. Adjust the options below so it fits your exact needs.
+                </p>
+            </div>
+
+            <div class="service-pill-wrapper">
+                <div class="service-pill">
+                    <div class="pill-content">
+                        <span class="pulsing-dot"></span>
+                        <span class="pill-label">Editing:</span>
+                        <span id="current-service-name" class="pill-value">Business Website</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="custom-grid" aria-labelledby="included-heading">
+            <!-- What's Included Card -->
+            <article class="custom-card">
+                <div class="custom-card-header">
+                    <div class="custom-card-icon included-icon">
+                        <i data-lucide="check-circle-2"></i>
+                    </div>
+                    <div>
+                        <h2 id="included-heading" class="custom-card-title">What's Included</h2>
+                        <p class="custom-card-subtitle">Everything that comes standard with your custom package.</p>
+                    </div>
+                </div>
+                <div class="starter-included-badge">
+                    <i data-lucide="layers"></i>
+                    <span>Starter package features included</span>
+                </div>
+                <ul id="included-list" class="feature-list"></ul>
+            </article>
+
+            <!-- Customization Options Card -->
+            <article class="custom-card">
+                <div class="custom-card-header">
+                    <div class="custom-card-icon options-icon">
+                        <i data-lucide="settings-2"></i>
+                    </div>
+                    <div>
+                        <h2 class="custom-card-title">Customization Options</h2>
+                        <p class="custom-card-subtitle">Choose extra features to tailor this project.</p>
+                    </div>
+                </div>
+                <ul id="options-list" class="feature-list"></ul>
+            </article>
+
+            <!-- FIX: grid-column span so noscript fills both columns -->
+            <noscript>
+                <style>
+                    .noscript-card {
+                        grid-column: 1 / -1;
+                    }
+                </style>
+                <div class="custom-card noscript-card" style="text-align:center; padding:40px;">
+                    <h2 class="custom-card-title">JavaScript Required</h2>
+                    <p class="custom-card-subtitle" style="margin-top:10px;">
+                        Please enable JavaScript to use the package customizer.
+                        You can also <a href="index.html#contact" style="color:#22d3ee;">contact us directly</a>.
+                    </p>
+                </div>
+            </noscript>
+        </section>
+
+        <!-- Custom Notes Section -->
+        <section class="custom-notes-section" aria-labelledby="notes-heading">
+            <div class="custom-notes-card">
+                <div class="custom-card-header">
+                    <div class="custom-card-icon notes-icon">
+                        <i data-lucide="pen-line"></i>
+                    </div>
+                    <div>
+                        <h2 id="notes-heading" class="custom-card-title">Anything not listed? <span class="notes-optional-tag">(Optional)</span></h2>
+                        <p class="custom-card-subtitle">Describe any custom features or requirements not covered above.</p>
+                        <p class="notes-scope-disclaimer">Requests not listed above will be reviewed and may affect pricing and timeline. We'll confirm everything before invoicing.</p>
+                    </div>
+                </div>
+                <div class="custom-notes-body">
+                    <textarea id="custom-notes" maxlength="1000"
+                        placeholder="List any must-haves not covered above:&#10;• Integrations (CRM, email, payments, etc.):&#10;• Special pages/sections:&#10;• Design/animation requests:&#10;• Examples/links you like:&#10;• Notes (content ready? deadlines?):"
+                        aria-label="Additional notes or custom requirements" aria-describedby="char-counter"></textarea>
+                    <div class="char-counter" id="char-counter" aria-live="polite">
+                        <span id="char-count">0</span>&nbsp;/ 1000
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="next-step-wrapper">
+            <!--
+                FIX: type="button" added — without it, browsers treat
+                buttons as type="submit" by default which can cause issues
+            -->
+            <button type="button" id="next-step-btn" class="next-step-pill"
+                aria-label="Save customizations and continue to contact">
+                Save & Continue
+                <i data-lucide="arrow-right"></i>
+            </button>
+        </div>
+
+        <div class="back-note">
+            <p>Your selections are saved automatically. You can always come back to make changes.</p>
+        </div>
+    </main>
+
+
+    <div id="notification-container" class="notification-container" aria-live="polite"></div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" defer crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js" defer crossorigin="anonymous"></script>
+    <script src="main.js" defer></script>
+</body>
+
+</html>

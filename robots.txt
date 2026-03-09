@@ -1,0 +1,8 @@
+# AlgoCraftDev robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://algocraftdev.com/sitemap.xml
+
+# Block form handler noise
+Disallow: /api/
