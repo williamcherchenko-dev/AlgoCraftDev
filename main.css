@@ -6964,7 +6964,7 @@ button.pill-action {
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.38s ease;
     /* Backdrop takes pointer events only — panel sits above it */
     cursor: pointer;
 }
@@ -6994,14 +6994,15 @@ button.pill-action {
         0 32px 80px rgba(0, 0, 0, 0.60),
         0 0 0 1px rgba(255,255,255,0.05);
     opacity: 0;
-    transform: translateY(18px);
-    transition: opacity 0.32s cubic-bezier(0.215,0.61,0.355,1),
-                transform 0.32s cubic-bezier(0.215,0.61,0.355,1);
+    transform: translateY(22px) scale(0.97);
+    transition: opacity 0.38s cubic-bezier(0.22,1,0.36,1),
+                transform 0.38s cubic-bezier(0.22,1,0.36,1);
+    will-change: transform, opacity;
 }
 
 /* Open state */
 .svc-modal.is-open .svc-modal-backdrop { opacity: 1; }
-.svc-modal.is-open .svc-modal-panel    { opacity: 1; transform: translateY(0); }
+.svc-modal.is-open .svc-modal-panel    { opacity: 1; transform: translateY(0) scale(1); }
 
 /* ── Close button ── */
 .svc-modal-close {
@@ -7279,7 +7280,7 @@ button.pill-action {
         max-height: 92vh;
         border-radius: 22px 22px 0 0;
         padding: 0 0 36px;
-        transform: translateY(40px);
+        transform: translateY(100%);
         overflow-y: scroll;
         -webkit-overflow-scrolling: touch;
     }
@@ -7325,7 +7326,7 @@ body.modal-open {
     -webkit-backdrop-filter: blur(6px);
     cursor: pointer;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.38s ease;
 }
 
 /* ── Panel ── */
@@ -7347,9 +7348,10 @@ body.modal-open {
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55),
                 0 0 0 1px rgba(255, 255, 255, 0.04);
     opacity: 0;
-    transform: translateY(16px) scale(0.98);
-    transition: opacity 0.3s cubic-bezier(0.215, 0.61, 0.355, 1),
-                transform 0.3s cubic-bezier(0.215, 0.61, 0.355, 1);
+    transform: translateY(22px) scale(0.97);
+    transition: opacity 0.38s cubic-bezier(0.22,1,0.36,1),
+                transform 0.38s cubic-bezier(0.22,1,0.36,1);
+    will-change: transform, opacity;
 }
 
 .ask-modal.is-open .ask-modal-backdrop { opacity: 1; }
@@ -7546,7 +7548,7 @@ body.modal-open {
         max-height: 92vh;
         border-radius: 20px 20px 0 0;
         padding: 32px 22px 36px;
-        transform: translateY(24px) scale(1);
+        transform: translateY(100%);
         overflow-y: scroll;
         -webkit-overflow-scrolling: touch;
     }
@@ -7641,7 +7643,7 @@ body.ask-modal-open { width: 100%; }
     -webkit-backdrop-filter: blur(6px);
     cursor: pointer;
     opacity: 0;
-    transition: opacity 0.28s ease;
+    transition: opacity 0.38s ease;
 }
 
 .addon-info-modal.is-open .addon-info-backdrop { opacity: 1; }
@@ -7666,9 +7668,10 @@ body.ask-modal-open { width: 100%; }
     padding: 30px 28px 26px;
     box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
     opacity: 0;
-    transform: translateY(16px) scale(0.98);
-    transition: opacity 0.28s cubic-bezier(0.215,0.61,0.355,1),
-                transform 0.28s cubic-bezier(0.215,0.61,0.355,1);
+    transform: translateY(22px) scale(0.97);
+    transition: opacity 0.38s cubic-bezier(0.22,1,0.36,1),
+                transform 0.38s cubic-bezier(0.22,1,0.36,1);
+    will-change: transform, opacity;
 }
 
 .addon-info-modal.is-open .addon-info-panel {
@@ -7862,6 +7865,7 @@ body.ask-modal-open { width: 100%; }
         border-radius: 20px 20px 0 0;
         padding: 24px 20px 32px;
         overflow-y: scroll;
+        transform: translateY(100%);
     }
 }
 
