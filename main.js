@@ -807,6 +807,9 @@
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
                     modal.classList.add('is-open');
+                    // Reset scroll to top every open
+                    var panel = modal.querySelector('.svc-modal-panel');
+                    if (panel) panel.scrollTop = 0;
                     refreshIcons();
                 });
             });
@@ -1433,6 +1436,8 @@
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
                     modal.classList.add('is-open');
+                    var panel = modal.querySelector('.addon-info-panel');
+                    if (panel) panel.scrollTop = 0;
                     refreshIcons();
                 });
             });
