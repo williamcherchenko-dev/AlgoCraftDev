@@ -8251,26 +8251,21 @@ body.ask-modal-open { width: 100%; }
 
     .value-container {
         flex-direction: row;
+        flex-wrap: wrap;
         align-items: stretch;
-        gap: 10px;
-        overflow-x: auto;
-        overflow-y: visible;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-
+        justify-content: center;
+        gap: 12px;
+        overflow: visible;
         padding: 18px 16px 18px;
-        justify-content: flex-start;
     }
-
-    .value-container::-webkit-scrollbar { display: none; }
 
     .value-box {
         flex-direction: column;
         align-items: center;
         text-align: center;
-        flex-shrink: 0;
-        flex: none;
-        width: 138px;
+        flex: 0 0 calc(33% - 8px);
+        min-width: 100px;
+        max-width: 160px;
         padding: 14px 12px;
         border-radius: 14px;
         gap: 0;
