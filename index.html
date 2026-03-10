@@ -3,6 +3,9 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Custom Website Design & Web Development | AlgoCraftDev</title>
     <meta name="description"
@@ -39,11 +42,11 @@
     <meta name="twitter:image" content="https://algocraftdev.com/og-image.jpg">
 
     <!-- Fonts -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" as="style">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="preload" href="main.css" as="style">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" href="main.css" as="style" fetchpriority="high">
     <link rel="stylesheet" href="main.css">
     
 
@@ -140,9 +143,7 @@
     </script>
 </head>
 
-<body class="loading">
-    <div class="page-loader" id="page-loader" aria-hidden="true">
-        <div class="loader-spinner"></div>
+<body>
     </div>
 
     <a href="#main-content" class="skip-link">Skip to main content</a>
@@ -1225,44 +1226,10 @@
 
     </main>
 
-    <!-- ======================== Site Footer ======================== -->
-    <footer class="site-footer">
-        <div class="footer-container">
-            <div class="footer-brand">
-                <div class="footer-logo">AlgoCraftDev</div>
-                <p>Custom websites and web apps that turn visitors into customers.</p>
-                <div class="footer-socials">
-                    <a href="https://instagram.com/algocraftdev" target="_blank" rel="noopener noreferrer"
-                        aria-label="Follow AlgoCraftDev on Instagram"><i data-lucide="instagram"></i></a>
-                </div>
-            </div>
-
-            <div class="footer-links">
-                <h4>Support</h4>
-                <a href="mailto:support@algocraftdev.com" style="color: #22d3ee;">support@algocraftdev.com</a>
-                <p class="footer-support-note">Have an issue or complaint? We'll respond within 24 hours.</p>
-            </div>
-
-            <div class="footer-links">
-                <h4>Legal</h4>
-                <a href="privacy.html">Privacy Policy</a>
-                <a href="terms.html">Terms of Service</a>
-            </div>
-        </div>
-
-        <div class="footer-divider"></div>
-
-        <div class="footer-bottom">
-            <p>&copy; 2026 AlgoCraftDev. All rights reserved.</p>
-        </div>
-    </footer>
-
-    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3.12.1/dist/email.min.js" defer></script>
-    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous" defer></script>
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js" defer></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script src="main.js" defer></script>
 </body>
-
 </html>
