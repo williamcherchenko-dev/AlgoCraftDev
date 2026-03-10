@@ -3,6 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Not Found | AlgoCraftDev</title>
     <meta name="robots" content="noindex, nofollow">
@@ -18,13 +20,14 @@
     <link rel="manifest" href="site.webmanifest">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="main.css">
 
     <!--Styles-->
 </head>
 
-<body class="loading">
+<body>
     <div class="blob-wrapper">
         <div class="drop drop-1">
             <div class="drop-inner"></div>
@@ -62,7 +65,7 @@
             Back to Home
         </a>
     </main>
-    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous" defer></script>
     <script src="main.js" defer></script>
 </body>
 
