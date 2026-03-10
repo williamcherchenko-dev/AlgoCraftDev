@@ -1,23 +1,7 @@
-/**
- * AlgoCraftDev — main.js
- * Merged from: main.js + custom-page.js
- * custom-page.js block is guarded and only runs on custom-page.html
- */
-
-/**
- * AlgoCraftDev — Main Application Script
- * Handles: navigation, smooth scroll, services/packages rendering,
- *          contact form submission, FAQ accordion, notifications,
- *          add-ons section, scroll reveal animations.
- *
- * Dependencies: Lenis (smooth scroll), Lucide (icons), EmailJS (form)
- */
 (function () {
     'use strict';
 
-    /* =========================================
-       CONSTANTS
-    ========================================= */
+
     var STORAGE_KEYS = Object.freeze({
         SERVICE: 'selectedServiceId',
         PACKAGE: 'selectedPackageId',
@@ -31,7 +15,7 @@
 
     var FADE_DURATION = 400;
     var TOAST_DURATION = 4000;
-    var SCROLL_DURATION = 0.8;
+    var SCROLL_DURATION = 1.0;
     var SCROLL_OFFSET = -80;
     var SUBMIT_COOLDOWN_MS = 5000;
     var INPUT_MAX_LENGTH = Object.freeze({
@@ -52,9 +36,7 @@
         premium: { name: 'Premium Plan',  price: 399 }
     });
 
-    /* =========================================
-       SAFE STORAGE HELPERS
-    ========================================= */
+
     function storageGet(key) {
         try { return sessionStorage.getItem(key); }
         catch (e) { return null; }
@@ -62,17 +44,15 @@
 
     function storageSet(key, value) {
         try { sessionStorage.setItem(key, value); }
-        catch (e) { /* quota exceeded / private browsing */ }
+        catch (e) {  }
     }
 
     function storageRemove(key) {
         try { sessionStorage.removeItem(key); }
-        catch (e) { /* silent */ }
+        catch (e) {  }
     }
 
-    /* =========================================
-       SERVICES DATA
-    ========================================= */
+
     var servicesData = Object.freeze([
         {
             id: "business",
@@ -437,34 +417,48 @@
         }
     ]);
 
-    /* =========================================
-       STATE
-    ========================================= */
+
     var lenis = null;
     var activeServiceId = null;
     var isMenuOpen = false;
     var lastSubmitTime = 0;
     var wheelHandler = null;
 
-    /* =========================================
-       DOM READY
-    ========================================= */
+
     document.addEventListener('DOMContentLoaded', function() {
         try {
             init();
         } catch(e) {
             console.error('AlgoCraftDev init error:', e);
-            // Safety: always reveal the page even if init crashed
+
             document.body.style.opacity = '1';
             document.body.classList.add('fade-in');
         }
     });
+
+
+    function initPageVisibility() {
+        var styleEl = document.createElement('style');
+        styleEl.id = 'anim-pause-style';
+        document.head.appendChild(styleEl);
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                styleEl.textContent = '*, *::before, *::after { animation-play-state: paused !important; }';
+                if (lenis) lenis.stop();
+            } else {
+                styleEl.textContent = '';
+                if (lenis) lenis.start();
+            }
+        });
+    }
 
     function init() {
         initEmailJS();
         initLenis();
         refreshIcons();
         initFadeIn();
+        initPageVisibility();
         initNavigation();
         initServiceModal();
         initAskModal();
@@ -485,29 +479,23 @@
         cleanURL();
     }
 
-    /* =========================================
-       EMAILJS INITIALIZATION
-    ========================================= */
+
     function initEmailJS() {
         if (typeof emailjs !== 'undefined') {
             emailjs.init("UcOiwxLG_ZaSYkuFs");
         }
     }
 
-    /* =========================================
-       CLEAN URL
-    ========================================= */
+
     function cleanURL() {
         if (window.location.hash) {
             try {
                 history.replaceState(null, '', window.location.pathname + window.location.search);
-            } catch (e) { /* silent */ }
+            } catch (e) {  }
         }
     }
 
-    /* =========================================
-       LENIS SMOOTH SCROLL
-    ========================================= */
+
     function initLenis() {
         if (typeof Lenis !== 'undefined') {
             startLenis();
@@ -523,15 +511,15 @@
 
     function startLenis() {
         try {
-            // Detect iOS Safari - Lenis smooth scroll fights iOS native momentum scroll
+
             var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
             lenis = new Lenis({
                 duration: 1.1,
                 easing: function(t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
-                smoothWheel: !isIOS,          // disable on iOS - native scroll is smoother
-                smoothTouch: false,            // always off - causes jank on iOS
+                smoothWheel: !isIOS,
+                smoothTouch: false,
                 wheelMultiplier: 1.0,
                 touchMultiplier: isIOS ? 1.0 : 1.5
             });
@@ -541,7 +529,7 @@
                 } catch(e) {
                     console.warn('Lenis raf error, stopping loop:', e);
                     lenis = null;
-                    return; // stop the loop
+                    return;
                 }
                 requestAnimationFrame(raf);
             }
@@ -562,10 +550,7 @@
         lenis.scrollTo(target, merged);
     }
 
-    /* =========================================
-       /* =========================================
-       SERVICE LEARN MORE MODAL
-    ========================================= */
+
 
     var serviceDetails = {
         'business': {
@@ -720,33 +705,33 @@
 
             currentServiceId = serviceId;
 
-            // Icon
+
             var iconEl = document.getElementById('svc-modal-icon');
             iconEl.innerHTML = '<i data-lucide="' + escapeAttr(service.icon) + '"></i>';
             panel.setAttribute('data-color', details.color);
 
-            // Title + category + tagline
+
             document.getElementById('svc-modal-title').textContent = service.title;
             var catEl = document.getElementById('svc-modal-category');
             var tagEl = document.getElementById('svc-modal-tagline');
             if (catEl) catEl.textContent = details.category || '';
             if (tagEl) tagEl.textContent = details.tagline  || '';
 
-            // Build includes list
+
             var includesHTML = '<ul class="svc-includes-list" data-color="' + escapeAttr(details.color) + '">' +
                 details.includes.map(function(item) {
                     return '<li>' + escapeHTML(item) + '</li>';
                 }).join('') +
             '</ul>';
 
-            // Build use case tags
+
             var useCasesHTML = '<div class="svc-usecases">' +
                 details.useCases.map(function(uc) {
                     return '<span class="svc-usecase-tag">' + escapeHTML(uc) + '</span>';
                 }).join('') +
             '</div>';
 
-            // Assemble body
+
             document.getElementById('svc-modal-body').innerHTML =
                 '<div><p class="svc-section-label">Overview</p>' +
                     '<p class="svc-section-text">' + escapeHTML(details.overview) + '</p></div>' +
@@ -758,10 +743,10 @@
                 '<div class="svc-divider"></div>' +
                 '<div><p class="svc-section-label">Typical Use Cases</p>' + useCasesHTML + '</div>';
 
-            // Show
+
             modal.removeAttribute('hidden');
 
-            // iOS-safe scroll lock: position:fixed preserves scroll on Safari
+
             var scrollY = window.scrollY || window.pageYOffset;
             document.body.style.position = 'fixed';
             document.body.style.top = '-' + scrollY + 'px';
@@ -771,9 +756,9 @@
             document.body.classList.add('modal-open');
             panel.scrollTop = 0;
 
-            // Forward touch scroll to panel — even when drag starts on the backdrop
+
             modal._touchTrap = function(e) {
-                if (panel.contains(e.target)) return; // panel handles its own touch
+                if (panel.contains(e.target)) return;
                 e.preventDefault();
                 if (e.touches && e.touches.length === 1) {
                     var dy = (modal._lastTouchY !== undefined) ? (modal._lastTouchY - e.touches[0].clientY) : 0;
@@ -789,7 +774,7 @@
             modal.addEventListener('touchstart', modal._touchStart, { passive: true });
             modal.addEventListener('touchmove', modal._touchTrap, { passive: false });
 
-            // Forward mouse-wheel to panel regardless of where on the modal the cursor is
+
             modal._wheelTrap = function(e) {
                 e.preventDefault();
                 var atTop    = panel.scrollTop === 0 && e.deltaY < 0;
@@ -800,17 +785,16 @@
             };
             modal.addEventListener('wheel', modal._wheelTrap, { passive: false });
 
-            // Pause Lenis smooth scroll while modal is open
+
             if (typeof lenis !== 'undefined' && lenis) lenis.stop();
 
-            // Animate in (next frame so display:flex registers first)
+
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
                     modal.classList.add('is-open');
-                    // Reset scroll to top every open
                     var panel = modal.querySelector('.svc-modal-panel');
                     if (panel) panel.scrollTop = 0;
-                    refreshIcons();
+                    refreshIcons(modal);
                 });
             });
         }
@@ -818,7 +802,7 @@
         function closeModal() {
             modal.classList.remove('is-open');
 
-            // Restore scroll lock — undo iOS-safe fix
+
             var savedY = parseFloat(document.body.dataset.scrollY) || 0;
             document.body.style.position = '';
             document.body.style.top = '';
@@ -828,13 +812,13 @@
             document.body.classList.remove('modal-open');
             window.scrollTo(0, savedY);
 
-            // Remove wheel trap
+
             if (modal._wheelTrap) {
                 modal.removeEventListener('wheel', modal._wheelTrap);
                 modal._wheelTrap = null;
             }
 
-            // Remove touch trap
+
             if (modal._touchStart) {
                 modal.removeEventListener('touchstart', modal._touchStart);
                 modal._touchStart = null;
@@ -845,7 +829,7 @@
                 modal._touchTrap = null;
             }
 
-            // Resume Lenis
+
             if (typeof lenis !== 'undefined' && lenis) lenis.start();
 
             setTimeout(function() {
@@ -854,18 +838,18 @@
             }, 320);
         }
 
-        // Close on X
+
         closeBtn.addEventListener('click', closeModal);
 
-        // Close on backdrop
+
         backdrop.addEventListener('click', closeModal);
 
-        // Close on Escape
+
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
         });
 
-        // CTA — select service and scroll to packages
+
         ctaBtn.addEventListener('click', function() {
             if (!currentServiceId) return;
             var idToSelect = currentServiceId;
@@ -877,13 +861,11 @@
             }, 360);
         });
 
-        // Expose open function globally so card CTA can call it
+
         window._openServiceModal = openModal;
     }
 
-       /* =========================================
-       ASK A QUESTION MODAL
-    ========================================= */
+
     function initAskModal() {
         var modal    = document.getElementById('ask-modal');
         var panel    = modal ? modal.querySelector('.ask-modal-panel') : null;
@@ -896,7 +878,7 @@
 
         if (!modal || !panel || !triggerBtn) return;
 
-        /* ── Open / Close ── */
+
         function openAskModal() {
             modal.removeAttribute('hidden');
             var scrollY = window.scrollY || window.pageYOffset;
@@ -908,9 +890,9 @@
             document.body.classList.add('ask-modal-open');
             panel.scrollTop = 0;
 
-            // Forward touch scroll to panel — even when drag starts on the backdrop
+
             modal._touchTrap = function(e) {
-                if (panel.contains(e.target)) return; // panel handles its own touch
+                if (panel.contains(e.target)) return;
                 e.preventDefault();
                 if (e.touches && e.touches.length === 1) {
                     var dy = (modal._lastTouchY !== undefined) ? (modal._lastTouchY - e.touches[0].clientY) : 0;
@@ -926,7 +908,7 @@
             modal.addEventListener('touchstart', modal._touchStart, { passive: true });
             modal.addEventListener('touchmove', modal._touchTrap, { passive: false });
 
-            // Forward mouse-wheel to panel regardless of where cursor is in modal
+
             modal._wheelTrap = function(e) {
                 e.preventDefault();
                 var atTop    = panel.scrollTop === 0 && e.deltaY < 0;
@@ -974,7 +956,7 @@
 
             setTimeout(function() {
                 modal.setAttribute('hidden', '');
-                // Reset form + success state after fade out
+
                 if (form) form.reset();
                 if (success) success.setAttribute('hidden', '');
                 if (form) form.style.display = '';
@@ -988,7 +970,7 @@
             }, 320);
         }
 
-        /* ── Triggers ── */
+
         triggerBtn.addEventListener('click', openAskModal);
         closeBtn.addEventListener('click', closeAskModal);
         backdrop.addEventListener('click', closeAskModal);
@@ -996,7 +978,7 @@
             if (e.key === 'Escape' && modal.classList.contains('is-open')) closeAskModal();
         });
 
-        /* ── Validation ── */
+
         function clearAskErrors() {
             ['name','email','message'].forEach(function(f) {
                 var field = document.getElementById('ask-field-' + f);
@@ -1031,7 +1013,7 @@
             return valid;
         }
 
-        /* ── Submit ── */
+
         form.addEventListener('submit', function(e) {
             e.preventDefault();
             if (!validateAsk()) return;
@@ -1070,7 +1052,7 @@
                 form.style.display = 'none';
                 success.removeAttribute('hidden');
                 refreshIcons();
-                // Auto-close after 2.5s
+
                 setTimeout(closeAskModal, 2500);
             })
             .catch(function(err) {
@@ -1082,7 +1064,7 @@
             });
         });
 
-        // Clear error on input
+
         ['ask-name','ask-email','ask-message'].forEach(function(id) {
             var el = document.getElementById(id);
             var fieldId = id.replace('ask-', '');
@@ -1095,12 +1077,15 @@
         });
     }
 
-    /* =========================================
-       ICONS
-    ========================================= */
-    function refreshIcons() {
+
+    function refreshIcons(scope) {
         if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
+
+            if (scope && typeof lucide.createIcons === 'function') {
+                lucide.createIcons({ nameAttr: 'data-lucide', nodes: scope.querySelectorAll('[data-lucide]') });
+            } else {
+                lucide.createIcons();
+            }
             return;
         }
         var script = document.createElement('script');
@@ -1111,38 +1096,16 @@
         document.head.appendChild(script);
     }
 
-    /* =========================================
-       FADE TRANSITIONS
-    ========================================= */
+
     function initFadeIn() {
         var loader = document.getElementById('page-loader');
-
-        function revealPage() {
+        if (loader) loader.classList.remove('active');
+        document.body.classList.remove('loading');
+        window.addEventListener('pageshow', function() {
             document.body.classList.remove('loading');
-            document.body.classList.add('fade-in');
-            if (loader) loader.classList.remove('active');
-        }
-
-        // Double-rAF ensures paint before class swap on all browsers incl. iOS Safari
-        requestAnimationFrame(function() {
-            requestAnimationFrame(revealPage);
         });
 
-        // Hard safety net: if JS errors caused revealPage to not fire, force visible after 2s
-        // This prevents permanent blank/black screen on iOS Safari
-        setTimeout(function() {
-            if (!document.body.classList.contains('fade-in')) {
-                document.body.style.opacity = '1';
-            }
-        }, 2000);
 
-        window.addEventListener('pageshow', function (e) {
-            document.body.classList.remove('fade-out', 'loading');
-            document.body.classList.add('fade-in');
-            if (loader) loader.classList.remove('active');
-        });
-
-        /* ── Bento grid entrance animations ── */
         if (typeof IntersectionObserver !== 'undefined') {
             var bentoCards = document.querySelectorAll('.bento-card');
             if (bentoCards.length) {
@@ -1158,7 +1121,7 @@
                 bentoCards.forEach(function (card) {
                     bentoObserver.observe(card);
 
-                    // Cursor spotlight — update --bento-x / --bento-y on mousemove
+
                     card.addEventListener('mousemove', function(e) {
                         var rect = card.getBoundingClientRect();
                         var x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1) + '%';
@@ -1167,7 +1130,7 @@
                         card.style.setProperty('--bento-y', y);
                     });
 
-                    // Reset on leave so spotlight fades clean
+
                     card.addEventListener('mouseleave', function() {
                         card.style.setProperty('--bento-x', '50%');
                         card.style.setProperty('--bento-y', '50%');
@@ -1186,9 +1149,7 @@
         }, FADE_DURATION);
     }
 
-    /* =========================================
-       NOTIFICATION SYSTEM
-    ========================================= */
+
     function showNotification(text, type) {
         var container = document.getElementById('notification-container');
         if (!container) return;
@@ -1223,9 +1184,7 @@
         }, TOAST_DURATION);
     }
 
-    /* =========================================
-       WHEEL SCROLL BLOCKING (mobile menu)
-    ========================================= */
+
     function addWheelBlock() {
         if (wheelHandler) return;
         wheelHandler = function (e) {
@@ -1240,9 +1199,7 @@
         wheelHandler = null;
     }
 
-    /* =========================================
-       NAVIGATION
-    ========================================= */
+
     function initNavigation() {
         var menuOpen = document.getElementById('menu-open');
         var menuClose = document.getElementById('menu-close');
@@ -1325,11 +1282,13 @@
                     closeMenu();
                     if (targetId === '#custom-inquiry') activateInquiryMode();
                     if (targetId === '#services') deactivateInquiryMode();
-                    reliableScrollTo(targetId, { delay: 250 });
+                    if (lenis) lenis.resize();
+                    reliableScrollTo(targetId, { delay: 260 });
                 } else {
                     if (targetId === '#custom-inquiry') activateInquiryMode();
                     if (targetId === '#services') deactivateInquiryMode();
-                    reliableScrollTo(targetId, { delay: 0 });
+                    if (lenis) lenis.resize();
+                    reliableScrollTo(targetId, { delay: 20 });
                 }
             });
         });
@@ -1375,9 +1334,7 @@
         });
     }
 
-    /* =========================================
-       ADDON INFO MODALS (Hosting + Management)
-    ========================================= */
+
     function initAddonModals() {
         var modals = {
             hosting:    document.getElementById('hosting-info-modal'),
@@ -1392,7 +1349,7 @@
             var modal = modals[type];
             if (!modal) return;
             modal.removeAttribute('hidden');
-            // iOS scroll lock
+
             var scrollY = window.scrollY;
             document.body.style.position = 'fixed';
             document.body.style.top = '-' + scrollY + 'px';
@@ -1401,7 +1358,7 @@
             document.body.dataset.addonScrollY = scrollY;
             if (typeof lenis !== 'undefined' && lenis) lenis.stop();
 
-            // Forward mouse-wheel to panel regardless of where cursor is inside modal
+
             var panel = modal.querySelector('.addon-info-panel');
             if (panel) {
                 modal._wheelTrap = function(e) {
@@ -1414,7 +1371,7 @@
                 };
                 modal.addEventListener('wheel', modal._wheelTrap, { passive: false });
 
-                // Forward touch scroll to panel even when drag starts on backdrop
+
                 modal._touchTrap = function(e) {
                     if (panel.contains(e.target)) return;
                     e.preventDefault();
@@ -1438,7 +1395,7 @@
                     modal.classList.add('is-open');
                     var panel = modal.querySelector('.addon-info-panel');
                     if (panel) panel.scrollTop = 0;
-                    refreshIcons();
+                    refreshIcons(modal);
                 });
             });
         }
@@ -1448,13 +1405,13 @@
             if (!modal) return;
             modal.classList.remove('is-open');
 
-            // Remove wheel trap
+
             if (modal._wheelTrap) {
                 modal.removeEventListener('wheel', modal._wheelTrap);
                 modal._wheelTrap = null;
             }
 
-            // Remove touch traps
+
             if (modal._touchStart) {
                 modal.removeEventListener('touchstart', modal._touchStart);
                 modal._touchStart = null;
@@ -1480,7 +1437,7 @@
             var btn   = btns[type];
             if (!modal) return;
 
-            // Open on button click (stop propagation so row toggle doesn't fire)
+
             if (btn) {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -1488,24 +1445,22 @@
                 });
             }
 
-            // Close on backdrop
+
             var backdrop = modal.querySelector('.addon-info-backdrop');
             if (backdrop) backdrop.addEventListener('click', function() { closeAddonModal(type); });
 
-            // Close on X
+
             var closeBtn = modal.querySelector('.addon-info-close');
             if (closeBtn) closeBtn.addEventListener('click', function() { closeAddonModal(type); });
 
-            // Close on Escape
+
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && modal.classList.contains('is-open')) closeAddonModal(type);
             });
         });
     }
 
-    /* =========================================
-       SERVICE CARDS
-    ========================================= */
+
     function initServiceCards() {
         var servicesContainer = document.getElementById('services-grid');
         var currentServiceLabel = document.getElementById('current-service-name');
@@ -1606,7 +1561,7 @@
                 }
             });
 
-            // Learn More CTA — open modal, don\'t select service
+
             if (!service.isInquiry) {
                 var ctaEl = card.querySelector('.service-card-cta');
                 if (ctaEl) {
@@ -1622,11 +1577,10 @@
 
         refreshIcons();
 
-        /* ── Active card shimmer replay loop ──
-           Fires shimmer-play once on selection, then every 4s while still active */
+
         function playActiveShimmer(card) {
             card.classList.remove('shimmer-play');
-            void card.offsetWidth; // reflow
+            void card.offsetWidth;
             card.classList.add('shimmer-play');
         }
         function startShimmerLoop(card) {
@@ -1647,9 +1601,7 @@
         window._startShimmerLoop = startShimmerLoop;
         window._stopShimmerLoop  = stopShimmerLoop;
 
-        /* ── Mobile scroll-centre shimmer ──
-           When a service card scrolls into the centre ±25% of the viewport,
-           briefly fire its shimmer animation (desktop hover handles the rest) */
+
         if (window.IntersectionObserver) {
             var centreObserver = new IntersectionObserver(function(entries) {
                 entries.forEach(function(entry) {
@@ -1671,7 +1623,7 @@
             });
         }
 
-        // Expose so service modal "View Packages" can select a service directly
+
         window._selectService = function(serviceId) {
             var svc = findServiceById(serviceId);
             if (!svc || svc.isInquiry) return;
@@ -1707,9 +1659,7 @@
         };
     }
 
-    /* =========================================
-       PACKAGE RENDERING
-    ========================================= */
+
     function updatePackages(packages) {
         setTextById('starter-price', packages.starter.price);
         setTextById('custom-price', packages.custom.price);
@@ -1753,14 +1703,13 @@
         refreshIcons();
     }
 
-    /* =========================================
-   PACKAGE BUTTONS
-========================================= */
+
     function initPackageButtons() {
         bindPackageButton('starter-btn', function () {
             storageSet(STORAGE_KEYS.PACKAGE, 'starter');
             updateContactSummaryPill();
-            reliableScrollTo('#contact', { delay: 100 });
+            if (lenis) lenis.resize();
+            reliableScrollTo('#contact', { delay: 120 });
         });
 
         bindPackageButton('customize-btn', function () {
@@ -1773,7 +1722,8 @@
         bindPackageButton('pro-btn', function () {
             storageSet(STORAGE_KEYS.PACKAGE, 'professional');
             updateContactSummaryPill();
-            reliableScrollTo('#contact', { delay: 100 });
+            if (lenis) lenis.resize();
+            reliableScrollTo('#contact', { delay: 120 });
         });
     }
 
@@ -1795,9 +1745,7 @@
         });
     }
 
-    /* =========================================
-   CLEAR SELECTION
-========================================= */
+
     function initClearSelection() {
         var btn = document.getElementById('clear-selection-btn');
         if (!btn) return;
@@ -1847,9 +1795,7 @@
         });
     }
 
-    /* =========================================
-       CONTACT FORM
-    ========================================= */
+
     function initContactForm() {
         var form = document.getElementById('contact-form');
         if (!form) return;
@@ -1991,7 +1937,7 @@
                 .then(function () {
                     showNotification('Message sent successfully! 🚀', 'success');
                     form.reset();
-                    // Clear new fields explicitly
+
                     ['business-name','website-url','timeline','budget'].forEach(function(id) {
                         var el = document.getElementById(id);
                         if (el) el.value = '';
@@ -2015,9 +1961,7 @@
         btn.disabled = false;
     }
 
-    /* =========================================
-       CUSTOM INQUIRY FORM
-    ========================================= */
+
     function initInquiryForm() {
         var form = document.getElementById('inquiry-form');
         if (!form) return;
@@ -2058,8 +2002,8 @@
 
             var nameVal      = getVal('inquiry-name');
             var emailVal     = getVal('inquiry-email');
-            var businessVal  = getVal('inquiry-business');       // optional
-            var currentUrlVal= getVal('inquiry-current-url');    // optional
+            var businessVal  = getVal('inquiry-business');
+            var currentUrlVal= getVal('inquiry-current-url');
             var buildTypeVal = getVal('inquiry-build-type');
             var goalVal      = getVal('inquiry-goal');
             var budgetVal    = getVal('inquiry-budget');
@@ -2143,7 +2087,7 @@
 
             try {
                 sessionStorage.setItem('customInquiryData', JSON.stringify(projectData));
-            } catch (err) { /* silent */ }
+            } catch (err) {  }
 
             var templateParams = {
                 name: nameVal,
@@ -2190,7 +2134,7 @@
         });
     }
 
-    /* --- Inquiry form helpers --- */
+
     function getVal(id) {
         var el = document.getElementById(id);
         return el ? el.value.trim() : '';
@@ -2227,9 +2171,7 @@
         });
     }
 
-    /* =========================================
-       INQUIRY / CONTACT MODE SWITCHING
-    ========================================= */
+
     function activateInquiryMode() {
         var contactSection = document.getElementById('contact');
         if (contactSection) contactSection.classList.add('inquiry-mode');
@@ -2256,9 +2198,7 @@
         if (contactSection) contactSection.classList.remove('inquiry-mode');
     }
 
-    /* =========================================
-       BLOB PERFORMANCE
-    ========================================= */
+
     function initBlobObserver() {
         var blobWrapper = document.querySelector('.blob-wrapper');
         if (!blobWrapper || typeof IntersectionObserver === 'undefined') return;
@@ -2276,9 +2216,7 @@
         observer.observe(blobWrapper);
     }
 
-    /* =========================================
-       FAQ ACCORDION
-    ========================================= */
+
     function initFAQ() {
         var faqItems = document.querySelectorAll('.faq-item');
 
@@ -2303,9 +2241,7 @@
         });
     }
 
-    /* =========================================
-       HANDLE RETURN FROM OTHER PAGES
-    ========================================= */
+
     function handleReturnScroll() {
         var storedTarget = storageGet(STORAGE_KEYS.SCROLL);
         if (!storedTarget) return;
@@ -2314,7 +2250,7 @@
 
         try {
             history.replaceState(null, '', window.location.pathname);
-        } catch (e) { /* silent */ }
+        } catch (e) {  }
 
         var showSaved = storageGet('showSavedNotification');
         if (showSaved) {
@@ -2335,9 +2271,7 @@
         }, 300);
     }
 
-    /* =========================================
-   UTILITY FUNCTIONS
-========================================= */
+
     function findServiceById(id) {
         for (var i = 0; i < servicesData.length; i++) {
             if (servicesData[i].id === id) return servicesData[i];
@@ -2399,9 +2333,7 @@
         }
     }
 
-    /* =============================================
-       ICON MAP — service id -> lucide icon name
-    ============================================= */
+
     var SERVICE_ICONS = {
         business:   'briefcase',
         landing:    'mouse-pointer-click',
@@ -2428,25 +2360,23 @@
 
         var isManagement = details.selectedServiceId === 'management';
 
-        /* Valid = has service + package, NOT the custom-inquiry card */
+
         var validSelection = !!(
             details.selectedServiceId &&
             details.selectedPackageId &&
             details.selectedServiceId !== 'custom-inquiry'
         );
 
-        /* Snapshot body open state BEFORE touching anything — prevents addon
-           toggles (which call this function) from accidentally collapsing the
-           expanded pill. We only close on invalid selection or via the toggle btn. */
+
         var bodyIsCurrentlyOpen = bodyEl && bodyEl.classList.contains('open');
 
-        /* ── Card state class ── */
+
         if (card) {
             card.classList.toggle('has-selection', validSelection);
             card.classList.toggle('mgmt-mode', validSelection && isManagement);
         }
 
-        /* ── Collapsed header summary text ── */
+
         var headerSummary = document.getElementById('csp-header-summary');
         if (headerSummary) {
             if (validSelection) {
@@ -2457,13 +2387,12 @@
             }
         }
 
-        /* ── Show/hide toggle button ── */
+
         if (toggleBtn) {
             toggleBtn.style.display = (validSelection && isManagement) ? 'none' : '';
         }
 
-        /* ── For management service: hide only the management row (hosting stays).
-           For all other services: show both rows normally. ── */
+
         var mgmtRow = document.getElementById('csp-management-row');
         var plansPanelEl = document.getElementById('csp-plans-panel');
 
@@ -2482,7 +2411,7 @@
             plansPanelEl.style.display = '';
         }
 
-        /* ── Collapse only when there is NO valid selection ── */
+
         if (!validSelection) {
             if (bodyEl)    { bodyEl.classList.remove('open'); bodyEl.setAttribute('aria-hidden', 'true'); }
             if (toggleBtn) { toggleBtn.setAttribute('aria-expanded', 'false'); }
@@ -2505,32 +2434,32 @@
             return;
         }
 
-        /* ── Restore / set body open state ── */
+
         if (bodyEl) {
             if (isManagement && !bodyIsCurrentlyOpen) {
-                /* First time management service selected — auto-open the pill */
+
                 bodyEl.classList.add('open');
                 bodyEl.setAttribute('aria-hidden', 'false');
             } else if (bodyIsCurrentlyOpen) {
-                /* Was open before this update (e.g. addon toggle) — keep it open */
+
                 bodyEl.classList.add('open');
                 bodyEl.setAttribute('aria-hidden', 'false');
             }
-            /* If closed and not management first-open — stay closed */
+
         }
 
-        /* ── Populate icon ── */
+
         var iconWrap = document.getElementById('csp-package-icon');
         if (iconWrap) {
             var iconName = SERVICE_ICONS[details.selectedServiceId] || 'code-2';
             iconWrap.innerHTML = '<i data-lucide="' + escapeAttr(iconName) + '"></i>';
         }
 
-        /* ── Service name ── */
+
         var svcNameEl = document.getElementById('csp-service-name');
         if (svcNameEl) svcNameEl.textContent = details.serviceName || '—';
 
-        /* ── Package badge ── */
+
         var badge = document.getElementById('csp-package-badge');
         if (badge) {
             badge.textContent = details.packageName || '—';
@@ -2539,12 +2468,12 @@
             if (badgeCls) badge.classList.add(badgeCls);
         }
 
-        /* ── Price ── */
+
         var price    = getSelectedPackagePrice();
         var priceEl3 = document.getElementById('csp-price');
         if (priceEl3) priceEl3.textContent = price || '—';
 
-        /* ── Features list ── */
+
         var featList = document.getElementById('csp-features-list');
         if (featList) {
             featList.innerHTML = '';
@@ -2559,14 +2488,14 @@
             }
         }
 
-        /* ── Totals ── */
+
         var totalProjectEl    = document.getElementById('csp-total-project');
         var totalMonthlyRowEl = document.getElementById('csp-total-monthly-row');
         var totalMonthlyValEl = document.getElementById('csp-total-monthly');
 
         if (totalProjectEl) totalProjectEl.textContent = price || '—';
 
-        /* Management service has no add-ons in this pill — hide monthly row */
+
         if (isManagement) {
             if (totalMonthlyRowEl) totalMonthlyRowEl.style.display = 'none';
         } else {
@@ -2592,10 +2521,7 @@
         updatePillToggleLabel();
         refreshIcons();
 
-        /* ── Budget cap field — show only for Custom package OR if any
-           one-time add-ons exist (hosting/management are monthly,
-           but Custom scope may scale, warranting a cap field).
-           Show for: custom package OR if hosting/management selected ── */
+
         var budgetRow = document.getElementById('budget-row');
         if (budgetRow) {
             var isCustomPkg = details.selectedPackageId === 'custom';
@@ -2637,9 +2563,7 @@
         }, delay);
     }
 
-    /* =========================================
-       INLINE FORM ERROR HELPERS
-    ========================================= */
+
     function showFieldError(fieldId, message) {
         var field = document.getElementById(fieldId);
         var errorEl = document.getElementById(fieldId + '-error');
@@ -2673,9 +2597,7 @@
         });
     }
 
-    /* =========================================
-       SCROLL REVEAL ANIMATIONS
-    ========================================= */
+
     function initScrollReveal() {
         if (typeof IntersectionObserver === 'undefined') return;
 
@@ -2707,24 +2629,24 @@
 
         var viewportHeight = window.innerHeight;
 
-        /* Assign stagger delays to feature items so each scrolls in separately */
+
         var featureItems = document.querySelectorAll('.about-features .feature-item');
         featureItems.forEach(function (el, i) {
             el.style.setProperty('--reveal-delay', (i * 130) + 'ms');
         });
 
-        /* Assign stagger delays to process step cards */
+
         var stepCards = document.querySelectorAll('.step-card');
         stepCards.forEach(function (el, i) {
             el.style.setProperty('--reveal-delay', (i * 120) + 'ms');
         });
 
-        /* ── Process step scroll-active tracking ── */
+
         if (stepCards.length) {
             var processSteps = document.querySelector('.process-steps');
             var lastActiveStep = null;
 
-            // Inject spotlight span into each step card + wire mousemove
+
             stepCards.forEach(function(card) {
                 var spotlight = document.createElement('span');
                 spotlight.className = 'step-spotlight';
@@ -2755,7 +2677,7 @@
                     sectionRect.bottom > 0;
 
                 if (isMobileHoriz) {
-                    /* Horizontal swipe carousel — closest card to viewport horizontal center */
+
                     var viewportHMid = window.innerWidth / 2;
                     stepCards.forEach(function(card) {
                         var rect = card.getBoundingClientRect();
@@ -2776,7 +2698,7 @@
                         return;
                     }
                 } else {
-                    /* Vertical scroll — closest card to viewport vertical center */
+
                     var viewportMid = window.innerHeight / 2;
                     stepCards.forEach(function(card) {
                         var rect = card.getBoundingClientRect();
@@ -2801,7 +2723,7 @@
                 if (closest && closest !== lastActiveStep) {
                     stepCards.forEach(function(c) { c.classList.remove('is-active'); });
 
-                    // Force reflow so shimmer animation re-fires on each new active card
+
                     void closest.offsetWidth;
 
                     closest.classList.add('is-active');
@@ -2810,7 +2732,7 @@
                 }
             }
 
-            // Throttle scroll for performance
+
             var scrollTicking = false;
             window.addEventListener('scroll', function() {
                 if (!scrollTicking) {
@@ -2822,7 +2744,7 @@
                 }
             }, { passive: true });
 
-            // Mobile: horizontal swipe on the process strip also triggers the check
+
             if (processSteps) {
                 var horizTicking = false;
                 processSteps.addEventListener('scroll', function() {
@@ -2836,7 +2758,7 @@
                 }, { passive: true });
             }
 
-            // Run once on load too
+
             updateActiveStep();
         }
 
@@ -2849,13 +2771,13 @@
             }
         });
 
-        // Safety net — strip any stale .reveal from service cards on mobile
+
         if (isMobile) {
             document.querySelectorAll('.service-card').forEach(function(c) {
                 c.classList.remove('reveal', 'revealed');
             });
 
-            // MutationObserver: strip .reveal the instant JS adds it to any service card
+
             var svcObserver = new MutationObserver(function(mutations) {
                 mutations.forEach(function(m) {
                     if (m.target.classList.contains('service-card')) {
@@ -2874,7 +2796,7 @@
         var observer = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
-                    // Never animate service cards on mobile — horizontal scroller
+
                     if (window.innerWidth <= 768 && entry.target.classList.contains('service-card')) {
                         entry.target.classList.remove('reveal');
                         observer.unobserve(entry.target);
@@ -2893,7 +2815,7 @@
             rootMargin: '0px 0px -30px 0px'
         });
 
-        /* Separate observer for feature-items — fires on each card individually */
+
         var featureObserver = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
@@ -2920,9 +2842,7 @@
         });
     }
 
-    /* =========================================
-   ADD-ONS SECTION
-========================================= */
+
     function initAddons() {
         var addonsSection = document.getElementById('addons');
         if (!addonsSection) return;
@@ -2959,7 +2879,8 @@
             continueBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                reliableScrollTo('#contact', { delay: 0 });
+                if (lenis) lenis.resize();
+                reliableScrollTo('#contact', { delay: 80 });
             });
         }
 
@@ -3026,17 +2947,17 @@
             selectLabel.textContent = isSelected ? 'Added ✓' : 'Tap to add';
         }
 
-        /* Management-specific: expand/collapse plan selector */
+
         if (type === 'management') {
             if (isSelected) {
                 expandMgmtPlans();
             } else {
                 collapseMgmtPlans();
                 storageRemove(STORAGE_KEYS.ADDON_MANAGEMENT_PLAN);
-                /* Reset price label */
+
                 var priceLbl = document.getElementById('management-price-label');
                 if (priceLbl) priceLbl.textContent = 'From $99/mo';
-                /* Deselect plan cards */
+
                 document.querySelectorAll('.mgmt-plan-card').forEach(function (c) {
                     c.classList.remove('selected');
                     c.setAttribute('aria-pressed', 'false');
@@ -3089,7 +3010,7 @@
 
         var planInfo = MANAGEMENT_PLANS[planKey];
 
-        /* Deselect all plan cards first */
+
         document.querySelectorAll('.mgmt-plan-card').forEach(function (c) {
             c.classList.remove('selected');
             c.setAttribute('aria-pressed', 'false');
@@ -3097,7 +3018,7 @@
             if (lbl) lbl.textContent = 'Select';
         });
 
-        /* Select the clicked one */
+
         var card = document.getElementById('mgmt-plan-' + planKey);
         if (card) {
             card.classList.add('selected');
@@ -3106,18 +3027,18 @@
             if (selLabel) selLabel.textContent = 'Selected ✓';
         }
 
-        /* Update the management addon card price label */
+
         var priceLbl = document.getElementById('management-price-label');
         if (priceLbl) priceLbl.textContent = '$' + planInfo.price + '/mo';
 
-        /* Save to storage */
+
         storageSet(STORAGE_KEYS.ADDON_MANAGEMENT_PLAN, planKey);
 
         updateAddonsTotal();
         updateContactSummaryPill();
     }
 
-    /* ===== FIX: This function declaration was missing ===== */
+
     function showAddonsSection() {
         var section = document.getElementById('addons');
         if (!section) return;
@@ -3190,7 +3111,7 @@
         if (hostingSelected) monthlyTotal += HOSTING_MONTHLY;
         if (managementSelected && planInfo) monthlyTotal += planInfo.price;
 
-        /* Itemised rows */
+
         if (hostingRow)    hostingRow.style.display    = hostingSelected ? 'flex' : 'none';
         if (managementRow) managementRow.style.display = managementSelected ? 'flex' : 'none';
         if (emptyRow)      emptyRow.style.display      = (!hostingSelected && !managementSelected) ? 'block' : 'none';
@@ -3251,14 +3172,14 @@
             if (mLabel) mLabel.textContent = 'Tap to add';
         }
 
-        /* Reset price label */
+
         var priceLbl = document.getElementById('management-price-label');
         if (priceLbl) priceLbl.textContent = 'From $99/mo';
 
-        /* Collapse plan panel */
+
         collapseMgmtPlans();
 
-        /* Deselect all plan cards */
+
         document.querySelectorAll('.mgmt-plan-card').forEach(function (c) {
             c.classList.remove('selected');
             c.setAttribute('aria-pressed', 'false');
@@ -3267,15 +3188,13 @@
         });
     }
 
-    /* =========================================
-       CONTACT SELECTION PILL
-    ========================================= */
+
     function initContactPill() {
         var toggleBtn = document.getElementById('csp-toggle-btn');
         var body      = document.getElementById('csp-body');
         if (!toggleBtn || !body) return;
 
-        /* Expand / collapse on button click */
+
         toggleBtn.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
@@ -3292,7 +3211,7 @@
             }
         });
 
-        /* Hosting toggle */
+
         var hostingRow = document.getElementById('csp-hosting-row');
         if (hostingRow) {
             hostingRow.addEventListener('click', function (e) { e.stopPropagation(); togglePillAddon('hosting'); });
@@ -3301,7 +3220,7 @@
             });
         }
 
-        /* Management toggle */
+
         var mgmtRow = document.getElementById('csp-management-row');
         if (mgmtRow) {
             mgmtRow.addEventListener('click', function (e) { e.stopPropagation(); togglePillAddon('management'); });
@@ -3310,7 +3229,7 @@
             });
         }
 
-        /* Management plan cards */
+
         var planCards = document.querySelectorAll('.csp-plan-card');
         planCards.forEach(function (card) {
             card.addEventListener('click', function (e) {
@@ -3364,8 +3283,7 @@
         refreshIcons();
     }
 
-    /* ── Lightweight update: only recalculates totals + toggle label.
-       Never touches body open/close state — used by addon row toggles. ── */
+
     function updatePillTotalsOnly() {
         var hostingSelected = storageGet(STORAGE_KEYS.ADDON_HOSTING) === 'true';
         var mgmtSelected    = storageGet(STORAGE_KEYS.ADDON_MANAGEMENT) === 'true';
@@ -3452,19 +3370,12 @@
 
 })();
 
-/* ── Custom Package Builder — runs only on custom-page.html ── */
 if (document.getElementById('next-step-btn')) {
-/**
- * AlgoCraftDev — Custom Package Builder
- * Handles: rendering included features, customization options,
- *          custom notes, saving selections, and navigation.
- */
+
 (function () {
     'use strict';
 
-    /* =========================================
-   CONSTANTS
-========================================= */
+
     var STORAGE = Object.freeze({
         SERVICE: 'selectedServiceId',
         PACKAGE: 'selectedPackageId',
@@ -3477,9 +3388,7 @@ if (document.getElementById('next-step-btn')) {
     var DEFAULT_SERVICE = 'business';
     var NOTES_MAX = 1000;
 
-    /* =========================================
-       SAFE STORAGE HELPERS
-    ========================================= */
+
     function storageGet(key) {
         try { return sessionStorage.getItem(key); }
         catch (e) { return null; }
@@ -3487,12 +3396,10 @@ if (document.getElementById('next-step-btn')) {
 
     function storageSet(key, value) {
         try { sessionStorage.setItem(key, value); }
-        catch (e) { /* private browsing / quota exceeded */ }
+        catch (e) {  }
     }
 
-    /* =========================================
-       CUSTOMIZATION DATA
-    ========================================= */
+
     var customizationData = Object.freeze({
         business: {
             label: "Business Website",
@@ -3689,9 +3596,7 @@ if (document.getElementById('next-step-btn')) {
         }
     });
 
-    /* =========================================
-       DOM READY
-    ========================================= */
+
     document.addEventListener('DOMContentLoaded', init);
 
     function init() {
@@ -3712,9 +3617,7 @@ if (document.getElementById('next-step-btn')) {
         initScrollReveal();
     }
 
-    /* =========================================
-       FADE TRANSITIONS
-    ========================================= */
+
     function initFade() {
         var loader = document.getElementById('page-loader');
         document.body.classList.remove('loading');
@@ -3741,9 +3644,7 @@ if (document.getElementById('next-step-btn')) {
         }, FADE_MS);
     }
 
-    /* =========================================
-       LENIS SMOOTH SCROLL
-    ========================================= */
+
     function initLenis() {
         if (typeof Lenis === 'undefined') return;
         try {
@@ -3771,18 +3672,14 @@ if (document.getElementById('next-step-btn')) {
         }
     }
 
-    /* =========================================
-       ICONS
-    ========================================= */
+
     function refreshIcons() {
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
     }
 
-    /* =========================================
-       SERVICE RESOLUTION
-    ========================================= */
+
     function resolveServiceId() {
         var id = storageGet(STORAGE.SERVICE) || DEFAULT_SERVICE;
         if (!customizationData[id]) {
@@ -3802,9 +3699,7 @@ if (document.getElementById('next-step-btn')) {
         }
     }
 
-    /* =========================================
-       HERO POPULATION
-    ========================================= */
+
     function populateHero(config) {
         var titleEl = document.getElementById('custom-title');
         var subtitleEl = document.getElementById('custom-subtitle');
@@ -3815,9 +3710,7 @@ if (document.getElementById('next-step-btn')) {
         if (pillEl) pillEl.textContent = config.label;
     }
 
-    /* =========================================
-       RENDER: INCLUDED FEATURES
-    ========================================= */
+
     function renderIncluded(elementId, items) {
         var container = document.getElementById(elementId);
         if (!container) return;
@@ -3842,9 +3735,7 @@ if (document.getElementById('next-step-btn')) {
         });
     }
 
-    /* =========================================
-       RENDER: CUSTOMIZATION OPTIONS
-    ========================================= */
+
     function renderOptions(elementId, options, preselected) {
         var container = document.getElementById(elementId);
         if (!container) return;
@@ -3880,9 +3771,7 @@ if (document.getElementById('next-step-btn')) {
         });
     }
 
-    /* =========================================
-       CUSTOM NOTES (textarea + char counter)
-    ========================================= */
+
     function initCustomNotes() {
         var textarea = document.getElementById('custom-notes');
         var countEl = document.getElementById('char-count');
@@ -3919,9 +3808,7 @@ if (document.getElementById('next-step-btn')) {
         return textarea ? textarea.value.trim() : '';
     }
 
-    /* =========================================
-       READ SELECTED OPTIONS FROM DOM
-    ========================================= */
+
     function getSelectedCustomOptions() {
         var selected = [];
         var labels = document.querySelectorAll('#options-list .option-label');
@@ -3937,9 +3824,7 @@ if (document.getElementById('next-step-btn')) {
         return selected;
     }
 
-    /* =========================================
-       SAVE ALL STATE
-    ========================================= */
+
     function saveAllState(selectedId) {
         storageSet(STORAGE.SERVICE, selectedId);
         storageSet(STORAGE.PACKAGE, 'custom');
@@ -3947,9 +3832,7 @@ if (document.getElementById('next-step-btn')) {
         storageSet(STORAGE.NOTES, getCustomNotes());
     }
 
-    /* =========================================
-   NOTIFICATION
-========================================= */
+
     function showNotification(text, type) {
         var container = document.getElementById('notification-container');
         if (!container) return;
@@ -3984,9 +3867,7 @@ if (document.getElementById('next-step-btn')) {
         }, 3000);
     }
 
-    /* =========================================
-   BUTTON BINDINGS
-========================================= */
+
     function bindBackButton(selectedId) {
         var btn = document.getElementById('back-home-btn');
         if (!btn) return;
@@ -4017,7 +3898,7 @@ if (document.getElementById('next-step-btn')) {
 
             try {
                 sessionStorage.setItem('showSavedNotification', 'true');
-            } catch (err) { /* silent */ }
+            } catch (err) {  }
 
             var loader = document.getElementById('page-loader');
             if (loader) loader.classList.add('active');
@@ -4025,9 +3906,7 @@ if (document.getElementById('next-step-btn')) {
         });
     }
 
-    /* =========================================
-   SCROLL REVEAL ANIMATIONS
-========================================= */
+
     function initScrollReveal() {
         if (typeof IntersectionObserver === 'undefined') return;
 
