@@ -144,7 +144,6 @@
 </head>
 
 <body>
-    </div>
 
     <a href="#main-content" class="skip-link">Skip to main content</a>
 
@@ -460,11 +459,10 @@
                 </p>
             </div>
 
-            <!----------------------------------(FAQ)---------------------------->
+        </section><!-- /.packages-section FIX 1.3: FAQ+Contact are now siblings -->
 
-                <!-- Selection pill -->
-            <!----------------------------------(FAQ)--------------------------->
-            <section id="faq" class="faq-section">
+        <!-- ======================== FAQ Section ======================== -->
+        <section id="faq" class="faq-section">
                 <div class="faq-header">
                     <div class="section-intro hero-size">
                         <div class="section-dots"><span></span><span></span><span></span></div>
@@ -576,9 +574,10 @@
                     </div>
                 </div>
             </section>
+        </section><!-- /.faq-section -->
 
             <!-- ======================== Contact Section ======================== -->
-            <section id="contact" class="contact-section">
+        <section id="contact" class="contact-section"><!-- FIX 1.3: now a sibling of packages -->
                 <div class="contact-header">
                     <div class="section-intro hero-size">
                         <div class="section-dots"><span></span><span></span><span></span></div>
@@ -874,6 +873,14 @@
                         </div><!-- /.form-section -->
                         <button type="submit" class="send-btn">Request a Quote</button>
                     </form>
+
+                    <!-- FIX 6.4: In-page success state for contact form -->
+                    <div id="contact-form-success" class="form-success-block" hidden aria-live="polite">
+                        <div class="form-success-icon"><i data-lucide="check-circle"></i></div>
+                        <h3>Message sent!</h3>
+                        <p>We've received your request and will reply within 24 hours to confirm scope and next steps.</p>
+                        <p class="form-success-note">No payment today — we'll send a Stripe invoice link after scope confirmation.</p>
+                    </div>
                 </div>
 
                 <!-- FIX: Changed from <section> to <div> — no nested sections -->
@@ -1054,6 +1061,14 @@
                             <button type="submit" class="send-btn send-btn--violet inquiry-submit-btn">Get a Recommendation</button>
                             <p class="form-helper-text">Not sure which service fits? I'll review your details and recommend the best option — with a clear quote.</p>
                         </form>
+
+                        <!-- FIX 6.4: In-page success state for inquiry form -->
+                        <div id="inquiry-form-success" class="form-success-block" hidden aria-live="polite">
+                            <div class="form-success-icon"><i data-lucide="check-circle"></i></div>
+                            <h3>Inquiry received!</h3>
+                            <p>We'll review your project details and get back to you within 24 hours with a recommendation and a clear quote.</p>
+                            <p class="form-success-note">No payment today — everything is confirmed before invoicing.</p>
+                        </div>
                     </div>
                 </div>
                 <!-- END custom inquiry -->
@@ -1226,10 +1241,58 @@
 
     </main>
 
+    <!-- FIX 7.2: Footer with legal links -->
+    <footer class="site-footer" aria-label="Site footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="footer-logo">AlgoCraftDev</div>
+                <p>Custom website design and web development for businesses and creators. Fast, modern, and entirely yours.</p>
+                <div class="footer-socials">
+                    <a href="https://instagram.com/algocraftdev" target="_blank" rel="noopener noreferrer" aria-label="AlgoCraftDev on Instagram">
+                        <i data-lucide="instagram"></i>
+                    </a>
+                    <a href="mailto:support@algocraftdev.com" aria-label="Email AlgoCraftDev">
+                        <i data-lucide="mail"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="#services">Business Websites</a></li>
+                    <li><a href="#services">Landing Pages</a></li>
+                    <li><a href="#services">E-Commerce Stores</a></li>
+                    <li><a href="#services">Web Applications</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#process">Process</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                    <li><a href="#contact">Start a Project</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="terms.html">Terms of Service</a></li>
+                    <li><a href="mailto:support@algocraftdev.com">support@algocraftdev.com</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>© <span id="footer-year">2025</span> AlgoCraftDev. All rights reserved.</p>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3.12.1/dist/email.min.js" defer></script>
     <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous" defer></script>
-    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js" defer></script>
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js" crossorigin="anonymous" defer></script>
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script>document.getElementById('footer-year') && (document.getElementById('footer-year').textContent = new Date().getFullYear());</script>
     <script src="main.js" defer></script>
 </body>
 </html>
