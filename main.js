@@ -15,8 +15,6 @@
 
     var FADE_DURATION = 400;
     var TOAST_DURATION = 4000;
-    var SCROLL_DURATION = 1.0;
-    var SCROLL_OFFSET = -80;
     var SUBMIT_COOLDOWN_MS = 5000;
     var INPUT_MAX_LENGTH = Object.freeze({
         name: 100,
@@ -344,9 +342,9 @@
                     features: [
                         "Starter Included (Pre-selected)",
                         "Add Page Rebuilds, Content Rewrite, SEO Migration, Performance",
-                        "Keep What Works, Improve What Don’t",
+                        "Keep What Works, Improve What Don't",
                         "Add-ons Priced Per Selection",
-                        "Best If You’re Unsure of Scope"
+                        "Best If You're Unsure of Scope"
                     ]
                 },
                 professional: {
@@ -418,11 +416,10 @@
     ]);
 
 
-    var lenis = null;
     var activeServiceId = null;
     var isMenuOpen = false;
     var lastSubmitTime = 0;
-    var wheelHandler = null;
+    var emailjsInitialized = false;
 
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -430,7 +427,6 @@
             init();
         } catch(e) {
             console.error('AlgoCraftDev init error:', e);
-
             document.body.style.opacity = '1';
             document.body.classList.add('fade-in');
         }
@@ -445,17 +441,14 @@
         document.addEventListener('visibilitychange', function() {
             if (document.hidden) {
                 styleEl.textContent = '*, *::before, *::after { animation-play-state: paused !important; }';
-                if (lenis) lenis.stop();
             } else {
                 styleEl.textContent = '';
-                if (lenis) lenis.start();
             }
         });
     }
 
     function init() {
         initEmailJS();
-        initLenis();
         refreshIcons();
         initFadeIn();
         initPageVisibility();
@@ -481,17 +474,21 @@
 
 
     function initEmailJS() {
-        // NOTE: EmailJS public key is intentionally client-side.
-        // FIX 1.5: Wrapped in try/catch for resilience if EmailJS fails to load.
-        // Recommendation: Also set rate limiting in your EmailJS dashboard to prevent abuse.
+        if (emailjsInitialized) return;
         if (typeof emailjs !== 'undefined') {
             try {
                 emailjs.init('UcOiwxLG_ZaSYkuFs');
+                emailjsInitialized = true;
             } catch (e) {
                 console.error('EmailJS init failed:', e);
             }
         }
     }
+
+    // Re-try init when EmailJS lazy-loads
+    document.addEventListener('focusin', function() {
+        if (!emailjsInitialized) initEmailJS();
+    }, { passive: true });
 
 
     function cleanURL() {
@@ -503,68 +500,29 @@
     }
 
 
-    function initLenis() {
-        if (typeof Lenis !== 'undefined') {
-            startLenis();
-            return;
-        }
-        var script = document.createElement('script');
-        script.src = 'js/vendor/lenis.min.js';
-        script.onload = function () {
-            if (typeof Lenis !== 'undefined') startLenis();
-        };
-        document.head.appendChild(script);
-    }
-
-    function startLenis() {
-        try {
-            // FIX 4.8: Fully disable Lenis when user prefers reduced motion
-            var prefersReducedMotion = window.matchMedia &&
-                window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-            if (prefersReducedMotion) {
-                // Skip Lenis entirely — native scroll is already instant
-                lenis = null;
-                return;
-            }
-
-            lenis = new Lenis({
-                duration: 1.1,
-                easing: function(t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
-                smoothWheel: !isIOS,
-                smoothTouch: false,
-                wheelMultiplier: 1.0,
-                touchMultiplier: isIOS ? 1.0 : 1.5
-            });
-            function raf(time) {
-                try {
-                    lenis.raf(time);
-                } catch(e) {
-                    console.warn('Lenis raf error, stopping loop:', e);
-                    lenis = null;
-                    return;
-                }
-                requestAnimationFrame(raf);
-            }
-            requestAnimationFrame(raf);
-        } catch (e) {
-            console.warn('Lenis smooth scroll failed to initialize:', e);
-            lenis = null;
+    function scrollTo(target) {
+        var el = typeof target === 'string' ? document.querySelector(target) : null;
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else if (typeof target === 'number') {
+            window.scrollTo({ top: target, behavior: 'smooth' });
         }
     }
 
-    function scrollTo(target, opts) {
-        if (!lenis) return;
-        var defaults = { duration: SCROLL_DURATION, offset: SCROLL_OFFSET };
-        var merged = {};
-        var key;
-        for (key in defaults) { merged[key] = defaults[key]; }
-        if (opts) { for (key in opts) { merged[key] = opts[key]; } }
-        lenis.scrollTo(target, merged);
-    }
 
+    function reliableScrollTo(target, options) {
+        var opts = options || {};
+        var delay = opts.delay || 0;
+
+        setTimeout(function () {
+            var el = typeof target === 'string' ? document.querySelector(target) : null;
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else if (typeof target === 'number') {
+                window.scrollTo({ top: target, behavior: 'smooth' });
+            }
+        }, delay);
+    }
 
 
     var serviceDetails = {
@@ -720,11 +678,9 @@
 
             currentServiceId = serviceId;
 
-
             var iconEl = document.getElementById('svc-modal-icon');
             iconEl.innerHTML = '<i data-lucide="' + escapeAttr(service.icon) + '"></i>';
             panel.setAttribute('data-color', details.color);
-
 
             document.getElementById('svc-modal-title').textContent = service.title;
             var catEl = document.getElementById('svc-modal-category');
@@ -732,20 +688,17 @@
             if (catEl) catEl.textContent = details.category || '';
             if (tagEl) tagEl.textContent = details.tagline  || '';
 
-
             var includesHTML = '<ul class="svc-includes-list" data-color="' + escapeAttr(details.color) + '">' +
                 details.includes.map(function(item) {
                     return '<li>' + escapeHTML(item) + '</li>';
                 }).join('') +
             '</ul>';
 
-
             var useCasesHTML = '<div class="svc-usecases">' +
                 details.useCases.map(function(uc) {
                     return '<span class="svc-usecase-tag">' + escapeHTML(uc) + '</span>';
                 }).join('') +
             '</div>';
-
 
             document.getElementById('svc-modal-body').innerHTML =
                 '<div><p class="svc-section-label">Overview</p>' +
@@ -758,9 +711,7 @@
                 '<div class="svc-divider"></div>' +
                 '<div><p class="svc-section-label">Typical Use Cases</p>' + useCasesHTML + '</div>';
 
-
             modal.removeAttribute('hidden');
-
 
             var scrollY = window.scrollY || window.pageYOffset;
             document.body.style.position = 'fixed';
@@ -770,7 +721,6 @@
             document.body.dataset.scrollY = scrollY;
             document.body.classList.add('modal-open');
             panel.scrollTop = 0;
-
 
             modal._touchTrap = function(e) {
                 if (panel.contains(e.target)) return;
@@ -789,7 +739,6 @@
             modal.addEventListener('touchstart', modal._touchStart, { passive: true });
             modal.addEventListener('touchmove', modal._touchTrap, { passive: false });
 
-
             modal._wheelTrap = function(e) {
                 e.preventDefault();
                 var atTop    = panel.scrollTop === 0 && e.deltaY < 0;
@@ -800,15 +749,11 @@
             };
             modal.addEventListener('wheel', modal._wheelTrap, { passive: false });
 
-
-            if (typeof lenis !== 'undefined' && lenis) lenis.stop();
-
-
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
                     modal.classList.add('is-open');
-                    var panel = modal.querySelector('.svc-modal-panel');
-                    if (panel) panel.scrollTop = 0;
+                    var p = modal.querySelector('.svc-modal-panel');
+                    if (p) p.scrollTop = 0;
                     refreshIcons(modal);
                 });
             });
@@ -816,7 +761,6 @@
 
         function closeModal() {
             modal.classList.remove('is-open');
-
 
             var savedY = parseFloat(document.body.dataset.scrollY) || 0;
             document.body.style.position = '';
@@ -827,12 +771,10 @@
             document.body.classList.remove('modal-open');
             window.scrollTo(0, savedY);
 
-
             if (modal._wheelTrap) {
                 modal.removeEventListener('wheel', modal._wheelTrap);
                 modal._wheelTrap = null;
             }
-
 
             if (modal._touchStart) {
                 modal.removeEventListener('touchstart', modal._touchStart);
@@ -844,26 +786,17 @@
                 modal._touchTrap = null;
             }
 
-
-            if (typeof lenis !== 'undefined' && lenis) lenis.start();
-
             setTimeout(function() {
                 modal.setAttribute('hidden', '');
                 currentServiceId = null;
             }, 320);
         }
 
-
         closeBtn.addEventListener('click', closeModal);
-
-
         backdrop.addEventListener('click', closeModal);
-
-
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
         });
-
 
         ctaBtn.addEventListener('click', function() {
             if (!currentServiceId) return;
@@ -875,7 +808,6 @@
                 }
             }, 360);
         });
-
 
         window._openServiceModal = openModal;
     }
@@ -893,7 +825,6 @@
 
         if (!modal || !panel || !triggerBtn) return;
 
-
         function openAskModal() {
             modal.removeAttribute('hidden');
             var scrollY = window.scrollY || window.pageYOffset;
@@ -904,7 +835,6 @@
             document.body.dataset.askScrollY = scrollY;
             document.body.classList.add('ask-modal-open');
             panel.scrollTop = 0;
-
 
             modal._touchTrap = function(e) {
                 if (panel.contains(e.target)) return;
@@ -923,7 +853,6 @@
             modal.addEventListener('touchstart', modal._touchStart, { passive: true });
             modal.addEventListener('touchmove', modal._touchTrap, { passive: false });
 
-
             modal._wheelTrap = function(e) {
                 e.preventDefault();
                 var atTop    = panel.scrollTop === 0 && e.deltaY < 0;
@@ -931,8 +860,6 @@
                 if (!atTop && !atBottom) panel.scrollTop += e.deltaY;
             };
             modal.addEventListener('wheel', modal._wheelTrap, { passive: false });
-
-            if (typeof lenis !== 'undefined' && lenis) lenis.stop();
 
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
@@ -967,11 +894,9 @@
                 modal.removeEventListener('wheel', modal._wheelTrap);
                 modal._wheelTrap = null;
             }
-            if (typeof lenis !== 'undefined' && lenis) lenis.start();
 
             setTimeout(function() {
                 modal.setAttribute('hidden', '');
-
                 if (form) form.reset();
                 if (success) success.setAttribute('hidden', '');
                 if (form) form.style.display = '';
@@ -985,14 +910,12 @@
             }, 320);
         }
 
-
         triggerBtn.addEventListener('click', openAskModal);
         closeBtn.addEventListener('click', closeAskModal);
         backdrop.addEventListener('click', closeAskModal);
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && modal.classList.contains('is-open')) closeAskModal();
         });
-
 
         function clearAskErrors() {
             ['name','email','message'].forEach(function(f) {
@@ -1027,7 +950,6 @@
 
             return valid;
         }
-
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
@@ -1067,7 +989,6 @@
                 form.style.display = 'none';
                 success.removeAttribute('hidden');
                 refreshIcons();
-
                 setTimeout(closeAskModal, 2500);
             })
             .catch(function(err) {
@@ -1078,7 +999,6 @@
                 showNotification('Failed to send. Please try again.', 'error');
             });
         });
-
 
         ['ask-name','ask-email','ask-message'].forEach(function(id) {
             var el = document.getElementById(id);
@@ -1095,7 +1015,6 @@
 
     function refreshIcons(scope) {
         if (typeof lucide !== 'undefined') {
-
             if (scope && typeof lucide.createIcons === 'function') {
                 lucide.createIcons({ nameAttr: 'data-lucide', nodes: scope.querySelectorAll('[data-lucide]') });
             } else {
@@ -1120,7 +1039,6 @@
             document.body.classList.remove('loading');
         });
 
-
         if (typeof IntersectionObserver !== 'undefined') {
             var bentoCards = document.querySelectorAll('.bento-card');
             if (bentoCards.length) {
@@ -1136,20 +1054,21 @@
                 bentoCards.forEach(function (card) {
                     bentoObserver.observe(card);
 
+                    // Only add mousemove tracking on desktop
+                    if (window.innerWidth > 768) {
+                        card.addEventListener('mousemove', function(e) {
+                            var rect = card.getBoundingClientRect();
+                            var x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1) + '%';
+                            var y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1) + '%';
+                            card.style.setProperty('--bento-x', x);
+                            card.style.setProperty('--bento-y', y);
+                        });
 
-                    card.addEventListener('mousemove', function(e) {
-                        var rect = card.getBoundingClientRect();
-                        var x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1) + '%';
-                        var y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1) + '%';
-                        card.style.setProperty('--bento-x', x);
-                        card.style.setProperty('--bento-y', y);
-                    });
-
-
-                    card.addEventListener('mouseleave', function() {
-                        card.style.setProperty('--bento-x', '50%');
-                        card.style.setProperty('--bento-y', '50%');
-                    });
+                        card.addEventListener('mouseleave', function() {
+                            card.style.setProperty('--bento-x', '50%');
+                            card.style.setProperty('--bento-y', '50%');
+                        });
+                    }
                 });
             }
         }
@@ -1185,33 +1104,15 @@
 
         setTimeout(function () {
             toast.classList.remove('show');
-
             var onEnd = function () {
                 if (toast.parentNode) toast.parentNode.removeChild(toast);
                 toast.removeEventListener('transitionend', onEnd);
             };
-
             toast.addEventListener('transitionend', onEnd);
-
             setTimeout(function () {
                 if (toast.parentNode) toast.parentNode.removeChild(toast);
             }, 800);
         }, TOAST_DURATION);
-    }
-
-
-    function addWheelBlock() {
-        if (wheelHandler) return;
-        wheelHandler = function (e) {
-            e.preventDefault();
-        };
-        document.addEventListener('wheel', wheelHandler, { passive: false });
-    }
-
-    function removeWheelBlock() {
-        if (!wheelHandler) return;
-        document.removeEventListener('wheel', wheelHandler);
-        wheelHandler = null;
     }
 
 
@@ -1225,9 +1126,7 @@
             navMenu.classList.add('active');
             if (menuOpen) menuOpen.classList.add('hidden');
             document.body.style.overflow = 'hidden';
-            if (lenis) lenis.stop();
             isMenuOpen = true;
-            addWheelBlock();
 
             var firstLink = navMenu.querySelector('.nav-links a');
             if (firstLink) firstLink.focus();
@@ -1238,9 +1137,7 @@
             navMenu.classList.remove('active');
             if (menuOpen) menuOpen.classList.remove('hidden');
             document.body.style.overflow = '';
-            if (lenis) lenis.start();
             isMenuOpen = false;
-            removeWheelBlock();
 
             if (menuOpen) menuOpen.focus();
         }
@@ -1269,10 +1166,8 @@
 
         document.addEventListener('click', function (e) {
             if (!isMenuOpen || !navMenu || !menuOpen) return;
-
             var clickedInsideMenu = navMenu.contains(e.target);
             var clickedToggle = menuOpen.contains(e.target);
-
             if (!clickedInsideMenu && !clickedToggle) {
                 closeMenu();
             }
@@ -1297,12 +1192,10 @@
                     closeMenu();
                     if (targetId === '#custom-inquiry') activateInquiryMode();
                     if (targetId === '#services') deactivateInquiryMode();
-                    if (lenis) lenis.resize();
                     reliableScrollTo(targetId, { delay: 260 });
                 } else {
                     if (targetId === '#custom-inquiry') activateInquiryMode();
                     if (targetId === '#services') deactivateInquiryMode();
-                    if (lenis) lenis.resize();
                     reliableScrollTo(targetId, { delay: 20 });
                 }
             });
@@ -1313,7 +1206,7 @@
             startProjectBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                reliableScrollTo('#services', { offset: -50 });
+                reliableScrollTo('#services');
             });
         }
 
@@ -1371,8 +1264,6 @@
             document.body.style.left = '0';
             document.body.style.right = '0';
             document.body.dataset.addonScrollY = scrollY;
-            if (typeof lenis !== 'undefined' && lenis) lenis.stop();
-
 
             var panel = modal.querySelector('.addon-info-panel');
             if (panel) {
@@ -1385,7 +1276,6 @@
                     }
                 };
                 modal.addEventListener('wheel', modal._wheelTrap, { passive: false });
-
 
                 modal._touchTrap = function(e) {
                     if (panel.contains(e.target)) return;
@@ -1408,8 +1298,8 @@
             requestAnimationFrame(function() {
                 requestAnimationFrame(function() {
                     modal.classList.add('is-open');
-                    var panel = modal.querySelector('.addon-info-panel');
-                    if (panel) panel.scrollTop = 0;
+                    var p = modal.querySelector('.addon-info-panel');
+                    if (p) p.scrollTop = 0;
                     refreshIcons(modal);
                 });
             });
@@ -1420,13 +1310,10 @@
             if (!modal) return;
             modal.classList.remove('is-open');
 
-
             if (modal._wheelTrap) {
                 modal.removeEventListener('wheel', modal._wheelTrap);
                 modal._wheelTrap = null;
             }
-
-
             if (modal._touchStart) {
                 modal.removeEventListener('touchstart', modal._touchStart);
                 modal._touchStart = null;
@@ -1443,7 +1330,6 @@
             document.body.style.right = '';
             delete document.body.dataset.addonScrollY;
             window.scrollTo(0, savedY);
-            if (typeof lenis !== 'undefined' && lenis) lenis.start();
             setTimeout(function() { modal.setAttribute('hidden', ''); }, 280);
         }
 
@@ -1452,7 +1338,6 @@
             var btn   = btns[type];
             if (!modal) return;
 
-
             if (btn) {
                 btn.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -1460,14 +1345,11 @@
                 });
             }
 
-
             var backdrop = modal.querySelector('.addon-info-backdrop');
             if (backdrop) backdrop.addEventListener('click', function() { closeAddonModal(type); });
 
-
             var closeBtn = modal.querySelector('.addon-info-close');
             if (closeBtn) closeBtn.addEventListener('click', function() { closeAddonModal(type); });
-
 
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape' && modal.classList.contains('is-open')) closeAddonModal(type);
@@ -1576,7 +1458,6 @@
                 }
             });
 
-
             if (!service.isInquiry) {
                 var ctaEl = card.querySelector('.service-card-cta');
                 if (ctaEl) {
@@ -1591,7 +1472,6 @@
         });
 
         refreshIcons();
-
 
         function playActiveShimmer(card) {
             card.classList.remove('shimmer-play');
@@ -1616,16 +1496,15 @@
         window._startShimmerLoop = startShimmerLoop;
         window._stopShimmerLoop  = stopShimmerLoop;
 
-
         if (window.IntersectionObserver) {
             var centreObserver = new IntersectionObserver(function(entries) {
                 entries.forEach(function(entry) {
                     if (entry.isIntersecting && !entry.target.classList.contains('active')) {
-                        var card = entry.target;
-                        card.classList.remove('shimmer-play');
-                        void card.offsetWidth;
-                        card.classList.add('shimmer-play');
-                        setTimeout(function() { card.classList.remove('shimmer-play'); }, 800);
+                        var c = entry.target;
+                        c.classList.remove('shimmer-play');
+                        void c.offsetWidth;
+                        c.classList.add('shimmer-play');
+                        setTimeout(function() { c.classList.remove('shimmer-play'); }, 800);
                     }
                 });
             }, {
@@ -1637,7 +1516,6 @@
                 centreObserver.observe(c);
             });
         }
-
 
         window._selectService = function(serviceId) {
             var svc = findServiceById(serviceId);
@@ -1661,11 +1539,11 @@
             clearAddonSelections();
             hideAddonsSection();
 
-            var currentServiceLabel = document.getElementById('current-service-name');
-            if (currentServiceLabel) {
-                currentServiceLabel.textContent = svc.title;
-                currentServiceLabel.style.opacity = '0';
-                setTimeout(function() { currentServiceLabel.style.opacity = '1'; }, 100);
+            var lbl = document.getElementById('current-service-name');
+            if (lbl) {
+                lbl.textContent = svc.title;
+                lbl.style.opacity = '0';
+                setTimeout(function() { lbl.style.opacity = '1'; }, 100);
             }
 
             updatePackages(svc.packages);
@@ -1723,7 +1601,6 @@
         bindPackageButton('starter-btn', function () {
             storageSet(STORAGE_KEYS.PACKAGE, 'starter');
             updateContactSummaryPill();
-            if (lenis) lenis.resize();
             reliableScrollTo('#contact', { delay: 120 });
         });
 
@@ -1737,7 +1614,6 @@
         bindPackageButton('pro-btn', function () {
             storageSet(STORAGE_KEYS.PACKAGE, 'professional');
             updateContactSummaryPill();
-            if (lenis) lenis.resize();
             reliableScrollTo('#contact', { delay: 120 });
         });
     }
@@ -1801,7 +1677,7 @@
 
             showNotification('All selections cleared. Choose a new service to start fresh.', 'success');
 
-            reliableScrollTo('#services', { delay: 150, duration: 0.8, offset: -80 });
+            reliableScrollTo('#services', { delay: 150 });
 
             setTimeout(function () {
                 btn.classList.remove('cleared');
@@ -1874,7 +1750,6 @@
                 hasError = true;
             }
 
-            // FIX 6.3: URL field validation — accept empty OR valid http/https URL
             if (websiteUrl && !/^https?:\/\/.+/.test(websiteUrl)) {
                 showFieldError('website-url', 'Please include https:// at the start of the URL.');
                 hasError = true;
@@ -1956,7 +1831,6 @@
 
             emailjs.send('service_qzgdeii', 'template_27cs3r5', templateParams)
                 .then(function () {
-                    // FIX 6.4: In-page success state — show success block, hide form
                     var successBlock = document.getElementById('contact-form-success');
                     if (successBlock) {
                         form.style.display = 'none';
@@ -1972,13 +1846,10 @@
                         clearAllFieldErrors();
                     }
                     updateContactSummaryPill();
-                    // FIX 6.1: Do NOT re-enable button after success — prevents double-send
                 })
                 .catch(function (error) {
                     console.error('EmailJS Error:', error);
-                    // FIX 6.4: Specific failure message with direct email fallback
                     showNotification('Submission failed. Please email us directly at support@algocraftdev.com', 'error');
-                    // FIX 6.1: Re-enable on failure so user can retry
                     resetButton(btn, originalBtnText);
                 });
         });
@@ -2057,7 +1928,6 @@
                 hasError = true;
             }
 
-            // FIX 6.3: URL validation for inquiry form
             if (currentUrlVal && !/^https?:\/\/.+/.test(currentUrlVal)) {
                 showInquiryError('inquiry-current-url', 'Please include https:// at the start of the URL.');
                 hasError = true;
@@ -2154,7 +2024,6 @@
 
             emailjs.send('service_qzgdeii', 'template_27cs3r5', templateParams)
                 .then(function () {
-                    // FIX 6.4: In-page success for inquiry form
                     var successBlock = document.getElementById('inquiry-form-success');
                     if (successBlock) {
                         form.style.display = 'none';
@@ -2166,13 +2035,10 @@
                         if (charCount) charCount.textContent = '0';
                         clearAllInquiryErrors();
                     }
-                    // FIX 6.1: Do NOT re-enable on success — prevents double-send
                 })
                 .catch(function (error) {
                     console.error('EmailJS Error:', error);
-                    // FIX 6.4: Specific failure with direct email fallback
                     showNotification('Submission failed. Please email us directly at support@algocraftdev.com', 'error');
-                    // FIX 6.1: Re-enable on failure so user can retry
                     resetButton(btn, originalText);
                 });
         });
@@ -2248,7 +2114,6 @@
         if (!blobWrapper || typeof IntersectionObserver === 'undefined') return;
 
         var blobs = blobWrapper.querySelectorAll('.blob');
-        // FIX 3.6: Also handle .drop elements — add will-change only when in view
         var drops = blobWrapper.querySelectorAll('.drop');
 
         var observer = new IntersectionObserver(function (entries) {
@@ -2256,7 +2121,6 @@
                 blobs.forEach(function (blob) {
                     blob.style.animationPlayState = entry.isIntersecting ? 'running' : 'paused';
                 });
-                // FIX 3.6: Apply will-change only when blob area is visible
                 drops.forEach(function (drop) {
                     if (entry.isIntersecting) {
                         drop.style.willChange = 'transform';
@@ -2317,11 +2181,7 @@
         setTimeout(function () {
             var targetEl = document.querySelector(storedTarget);
             if (!targetEl) return;
-
-            scrollTo(targetEl, {
-                duration: 0.8,
-                offset: 0
-            });
+            targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 300);
     }
 
@@ -2370,10 +2230,7 @@
         if (!d.selectedPackageId) {
             return d.serviceName || 'No service selected';
         }
-
-        var summary = (d.serviceName || 'Unknown service') + ' — ' + (d.packageName || 'Unknown package') + ' package';
-
-        return summary;
+        return (d.serviceName || 'Unknown service') + ' — ' + (d.packageName || 'Unknown package') + ' package';
     }
 
     function getStoredCustomOptions() {
@@ -2414,22 +2271,18 @@
 
         var isManagement = details.selectedServiceId === 'management';
 
-
         var validSelection = !!(
             details.selectedServiceId &&
             details.selectedPackageId &&
             details.selectedServiceId !== 'custom-inquiry'
         );
 
-
         var bodyIsCurrentlyOpen = bodyEl && bodyEl.classList.contains('open');
-
 
         if (card) {
             card.classList.toggle('has-selection', validSelection);
             card.classList.toggle('mgmt-mode', validSelection && isManagement);
         }
-
 
         var headerSummary = document.getElementById('csp-header-summary');
         if (headerSummary) {
@@ -2441,11 +2294,9 @@
             }
         }
 
-
         if (toggleBtn) {
             toggleBtn.style.display = (validSelection && isManagement) ? 'none' : '';
         }
-
 
         var mgmtRow = document.getElementById('csp-management-row');
         var plansPanelEl = document.getElementById('csp-plans-panel');
@@ -2464,7 +2315,6 @@
         if (plansPanelEl && (!validSelection || !isManagement)) {
             plansPanelEl.style.display = '';
         }
-
 
         if (!validSelection) {
             if (bodyEl)    { bodyEl.classList.remove('open'); bodyEl.setAttribute('aria-hidden', 'true'); }
@@ -2488,20 +2338,15 @@
             return;
         }
 
-
         if (bodyEl) {
             if (isManagement && !bodyIsCurrentlyOpen) {
-
                 bodyEl.classList.add('open');
                 bodyEl.setAttribute('aria-hidden', 'false');
             } else if (bodyIsCurrentlyOpen) {
-
                 bodyEl.classList.add('open');
                 bodyEl.setAttribute('aria-hidden', 'false');
             }
-
         }
-
 
         var iconWrap = document.getElementById('csp-package-icon');
         if (iconWrap) {
@@ -2509,10 +2354,8 @@
             iconWrap.innerHTML = '<i data-lucide="' + escapeAttr(iconName) + '"></i>';
         }
 
-
         var svcNameEl = document.getElementById('csp-service-name');
         if (svcNameEl) svcNameEl.textContent = details.serviceName || '—';
-
 
         var badge = document.getElementById('csp-package-badge');
         if (badge) {
@@ -2522,11 +2365,9 @@
             if (badgeCls) badge.classList.add(badgeCls);
         }
 
-
         var price    = getSelectedPackagePrice();
         var priceEl3 = document.getElementById('csp-price');
         if (priceEl3) priceEl3.textContent = price || '—';
-
 
         var featList = document.getElementById('csp-features-list');
         if (featList) {
@@ -2542,13 +2383,11 @@
             }
         }
 
-
         var totalProjectEl    = document.getElementById('csp-total-project');
         var totalMonthlyRowEl = document.getElementById('csp-total-monthly-row');
         var totalMonthlyValEl = document.getElementById('csp-total-monthly');
 
         if (totalProjectEl) totalProjectEl.textContent = price || '—';
-
 
         if (isManagement) {
             if (totalMonthlyRowEl) totalMonthlyRowEl.style.display = 'none';
@@ -2575,7 +2414,6 @@
         updatePillToggleLabel();
         refreshIcons();
 
-
         var budgetRow = document.getElementById('budget-row');
         if (budgetRow) {
             var isCustomPkg = details.selectedPackageId === 'custom';
@@ -2597,26 +2435,6 @@
         });
     }
 
-    function reliableScrollTo(target, options) {
-        var opts = options || {};
-        var delay = opts.delay || 0;
-        var duration = opts.duration || SCROLL_DURATION;
-        var offset = opts.offset !== undefined ? opts.offset : SCROLL_OFFSET;
-
-        setTimeout(function () {
-            if (lenis) {
-                lenis.scrollTo(target, { duration: duration, offset: offset });
-            } else {
-                var el = typeof target === 'string' ? document.querySelector(target) : null;
-                if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                } else if (typeof target === 'number') {
-                    window.scrollTo({ top: target, behavior: 'smooth' });
-                }
-            }
-        }, delay);
-    }
-
 
     function showFieldError(fieldId, message) {
         var field = document.getElementById(fieldId);
@@ -2627,10 +2445,8 @@
             if (group) group.classList.add('has-error');
         }
 
-        // FIX 5.5: Clear first so aria-live re-announces even if same message
         if (errorEl) {
             errorEl.textContent = '';
-            // Small timeout ensures screen readers detect the change
             setTimeout(function() { errorEl.textContent = message; }, 10);
         }
     }
@@ -2688,41 +2504,40 @@
 
         var viewportHeight = window.innerHeight;
 
-
         var featureItems = document.querySelectorAll('.about-features .feature-item');
         featureItems.forEach(function (el, i) {
             el.style.setProperty('--reveal-delay', (i * 130) + 'ms');
         });
-
 
         var stepCards = document.querySelectorAll('.step-card');
         stepCards.forEach(function (el, i) {
             el.style.setProperty('--reveal-delay', (i * 120) + 'ms');
         });
 
-
         if (stepCards.length) {
             var processSteps = document.querySelector('.process-steps');
             var lastActiveStep = null;
-
 
             stepCards.forEach(function(card) {
                 var spotlight = document.createElement('span');
                 spotlight.className = 'step-spotlight';
                 card.insertBefore(spotlight, card.firstChild);
 
-                card.addEventListener('mousemove', function(e) {
-                    var rect = card.getBoundingClientRect();
-                    var x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1) + '%';
-                    var y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1) + '%';
-                    card.style.setProperty('--step-x', x);
-                    card.style.setProperty('--step-y', y);
-                });
+                // Only add mousemove tracking on desktop
+                if (window.innerWidth > 768) {
+                    card.addEventListener('mousemove', function(e) {
+                        var rect = card.getBoundingClientRect();
+                        var x = ((e.clientX - rect.left) / rect.width  * 100).toFixed(1) + '%';
+                        var y = ((e.clientY - rect.top)  / rect.height * 100).toFixed(1) + '%';
+                        card.style.setProperty('--step-x', x);
+                        card.style.setProperty('--step-y', y);
+                    });
 
-                card.addEventListener('mouseleave', function() {
-                    card.style.setProperty('--step-x', '50%');
-                    card.style.setProperty('--step-y', '50%');
-                });
+                    card.addEventListener('mouseleave', function() {
+                        card.style.setProperty('--step-x', '50%');
+                        card.style.setProperty('--step-y', '50%');
+                    });
+                }
             });
 
             function updateActiveStep() {
@@ -2736,7 +2551,6 @@
                     sectionRect.bottom > 0;
 
                 if (isMobileHoriz) {
-
                     var viewportHMid = window.innerWidth / 2;
                     stepCards.forEach(function(card) {
                         var rect = card.getBoundingClientRect();
@@ -2757,7 +2571,6 @@
                         return;
                     }
                 } else {
-
                     var viewportMid = window.innerHeight / 2;
                     stepCards.forEach(function(card) {
                         var rect = card.getBoundingClientRect();
@@ -2781,16 +2594,12 @@
 
                 if (closest && closest !== lastActiveStep) {
                     stepCards.forEach(function(c) { c.classList.remove('is-active'); });
-
-
                     void closest.offsetWidth;
-
                     closest.classList.add('is-active');
                     if (processSteps) processSteps.classList.add('has-active');
                     lastActiveStep = closest;
                 }
             }
-
 
             var scrollTicking = false;
             window.addEventListener('scroll', function() {
@@ -2802,7 +2611,6 @@
                     scrollTicking = true;
                 }
             }, { passive: true });
-
 
             if (processSteps) {
                 var horizTicking = false;
@@ -2817,7 +2625,6 @@
                 }, { passive: true });
             }
 
-
             updateActiveStep();
         }
 
@@ -2830,12 +2637,10 @@
             }
         });
 
-
         if (isMobile) {
             document.querySelectorAll('.service-card').forEach(function(c) {
                 c.classList.remove('reveal', 'revealed');
             });
-
 
             var svcObserver = new MutationObserver(function(mutations) {
                 mutations.forEach(function(m) {
@@ -2855,7 +2660,6 @@
         var observer = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 if (entry.isIntersecting) {
-
                     if (window.innerWidth <= 768 && entry.target.classList.contains('service-card')) {
                         entry.target.classList.remove('reveal');
                         observer.unobserve(entry.target);
@@ -2863,7 +2667,6 @@
                     }
                     entry.target.classList.add('revealed');
                     observer.unobserve(entry.target);
-
                     setTimeout(function () {
                         entry.target.classList.remove('reveal', 'revealed');
                     }, 1000);
@@ -2873,7 +2676,6 @@
             threshold: 0.12,
             rootMargin: '0px 0px -30px 0px'
         });
-
 
         var featureObserver = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
@@ -2910,26 +2712,16 @@
         var managementCard = document.getElementById('addon-management');
 
         if (hostingCard) {
-            hostingCard.addEventListener('click', function () {
-                toggleAddon('hosting');
-            });
+            hostingCard.addEventListener('click', function () { toggleAddon('hosting'); });
             hostingCard.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggleAddon('hosting');
-                }
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAddon('hosting'); }
             });
         }
 
         if (managementCard) {
-            managementCard.addEventListener('click', function () {
-                toggleAddon('management');
-            });
+            managementCard.addEventListener('click', function () { toggleAddon('management'); });
             managementCard.addEventListener('keydown', function (e) {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    toggleAddon('management');
-                }
+                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleAddon('management'); }
             });
         }
 
@@ -2938,7 +2730,6 @@
             continueBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                if (lenis) lenis.resize();
                 reliableScrollTo('#contact', { delay: 80 });
             });
         }
@@ -3006,7 +2797,6 @@
             selectLabel.textContent = isSelected ? 'Added ✓' : 'Tap to add';
         }
 
-
         if (type === 'management') {
             if (isSelected) {
                 expandMgmtPlans();
@@ -3069,14 +2859,12 @@
 
         var planInfo = MANAGEMENT_PLANS[planKey];
 
-
         document.querySelectorAll('.mgmt-plan-card').forEach(function (c) {
             c.classList.remove('selected');
             c.setAttribute('aria-pressed', 'false');
             var lbl = c.querySelector('.mgmt-plan-select-label');
             if (lbl) lbl.textContent = 'Select';
         });
-
 
         var card = document.getElementById('mgmt-plan-' + planKey);
         if (card) {
@@ -3086,10 +2874,8 @@
             if (selLabel) selLabel.textContent = 'Selected ✓';
         }
 
-
         var priceLbl = document.getElementById('management-price-label');
         if (priceLbl) priceLbl.textContent = '$' + planInfo.price + '/mo';
-
 
         storageSet(STORAGE_KEYS.ADDON_MANAGEMENT_PLAN, planKey);
 
@@ -3170,7 +2956,6 @@
         if (hostingSelected) monthlyTotal += HOSTING_MONTHLY;
         if (managementSelected && planInfo) monthlyTotal += planInfo.price;
 
-
         if (hostingRow)    hostingRow.style.display    = hostingSelected ? 'flex' : 'none';
         if (managementRow) managementRow.style.display = managementSelected ? 'flex' : 'none';
         if (emptyRow)      emptyRow.style.display      = (!hostingSelected && !managementSelected) ? 'block' : 'none';
@@ -3231,13 +3016,10 @@
             if (mLabel) mLabel.textContent = 'Tap to add';
         }
 
-
         var priceLbl = document.getElementById('management-price-label');
         if (priceLbl) priceLbl.textContent = 'From $99/mo';
 
-
         collapseMgmtPlans();
-
 
         document.querySelectorAll('.mgmt-plan-card').forEach(function (c) {
             c.classList.remove('selected');
@@ -3252,7 +3034,6 @@
         var toggleBtn = document.getElementById('csp-toggle-btn');
         var body      = document.getElementById('csp-body');
         if (!toggleBtn || !body) return;
-
 
         toggleBtn.addEventListener('click', function (e) {
             e.preventDefault();
@@ -3270,7 +3051,6 @@
             }
         });
 
-
         var hostingRow = document.getElementById('csp-hosting-row');
         if (hostingRow) {
             hostingRow.addEventListener('click', function (e) { e.stopPropagation(); togglePillAddon('hosting'); });
@@ -3279,7 +3059,6 @@
             });
         }
 
-
         var mgmtRow = document.getElementById('csp-management-row');
         if (mgmtRow) {
             mgmtRow.addEventListener('click', function (e) { e.stopPropagation(); togglePillAddon('management'); });
@@ -3287,7 +3066,6 @@
                 if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); togglePillAddon('management'); }
             });
         }
-
 
         var planCards = document.querySelectorAll('.csp-plan-card');
         planCards.forEach(function (card) {
@@ -3341,7 +3119,6 @@
         updatePillTotalsOnly();
         refreshIcons();
     }
-
 
     function updatePillTotalsOnly() {
         var hostingSelected = storageGet(STORAGE_KEYS.ADDON_HOSTING) === 'true';
@@ -3434,7 +3211,6 @@ if (document.getElementById('next-step-btn')) {
 (function () {
     'use strict';
 
-
     var STORAGE = Object.freeze({
         SERVICE: 'selectedServiceId',
         PACKAGE: 'selectedPackageId',
@@ -3447,7 +3223,6 @@ if (document.getElementById('next-step-btn')) {
     var DEFAULT_SERVICE = 'business';
     var NOTES_MAX = 1000;
 
-
     function storageGet(key) {
         try { return sessionStorage.getItem(key); }
         catch (e) { return null; }
@@ -3457,7 +3232,6 @@ if (document.getElementById('next-step-btn')) {
         try { sessionStorage.setItem(key, value); }
         catch (e) {  }
     }
-
 
     var customizationData = Object.freeze({
         business: {
@@ -3655,12 +3429,10 @@ if (document.getElementById('next-step-btn')) {
         }
     });
 
-
     document.addEventListener('DOMContentLoaded', init);
 
     function init() {
         initFade();
-        initLenis();
 
         var selectedId = resolveServiceId();
         var config = customizationData[selectedId];
@@ -3675,7 +3447,6 @@ if (document.getElementById('next-step-btn')) {
         bindSaveButton(selectedId);
         initScrollReveal();
     }
-
 
     function initFade() {
         var loader = document.getElementById('page-loader');
@@ -3703,41 +3474,11 @@ if (document.getElementById('next-step-btn')) {
         }, FADE_MS);
     }
 
-
-    function initLenis() {
-        if (typeof Lenis === 'undefined') return;
-        try {
-            var isIOScp = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            var lenisInstance = new Lenis({
-                duration: 1.1,
-                easing: function(t) { return Math.min(1, 1.001 - Math.pow(2, -10 * t)); },
-                smoothWheel: !isIOScp,
-                smoothTouch: false,
-                wheelMultiplier: 1.0,
-                touchMultiplier: isIOScp ? 1.0 : 1.5
-            });
-            function raf(time) {
-                try {
-                    lenisInstance.raf(time);
-                } catch(e) {
-                    console.warn('Lenis raf error on custom page:', e);
-                    return;
-                }
-                requestAnimationFrame(raf);
-            }
-            requestAnimationFrame(raf);
-        } catch (e) {
-            console.warn('Lenis smooth scroll failed to initialize:', e);
-        }
-    }
-
-
     function refreshIcons() {
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
     }
-
 
     function resolveServiceId() {
         var id = storageGet(STORAGE.SERVICE) || DEFAULT_SERVICE;
@@ -3758,7 +3499,6 @@ if (document.getElementById('next-step-btn')) {
         }
     }
 
-
     function populateHero(config) {
         var titleEl = document.getElementById('custom-title');
         var subtitleEl = document.getElementById('custom-subtitle');
@@ -3768,7 +3508,6 @@ if (document.getElementById('next-step-btn')) {
         if (subtitleEl) subtitleEl.textContent = config.heroText;
         if (pillEl) pillEl.textContent = config.label;
     }
-
 
     function renderIncluded(elementId, items) {
         var container = document.getElementById(elementId);
@@ -3793,7 +3532,6 @@ if (document.getElementById('next-step-btn')) {
             container.appendChild(li);
         });
     }
-
 
     function renderOptions(elementId, options, preselected) {
         var container = document.getElementById(elementId);
@@ -3829,7 +3567,6 @@ if (document.getElementById('next-step-btn')) {
             container.appendChild(li);
         });
     }
-
 
     function initCustomNotes() {
         var textarea = document.getElementById('custom-notes');
@@ -3867,7 +3604,6 @@ if (document.getElementById('next-step-btn')) {
         return textarea ? textarea.value.trim() : '';
     }
 
-
     function getSelectedCustomOptions() {
         var selected = [];
         var labels = document.querySelectorAll('#options-list .option-label');
@@ -3883,14 +3619,12 @@ if (document.getElementById('next-step-btn')) {
         return selected;
     }
 
-
     function saveAllState(selectedId) {
         storageSet(STORAGE.SERVICE, selectedId);
         storageSet(STORAGE.PACKAGE, 'custom');
         storageSet(STORAGE.OPTIONS, JSON.stringify(getSelectedCustomOptions()));
         storageSet(STORAGE.NOTES, getCustomNotes());
     }
-
 
     function showNotification(text, type) {
         var container = document.getElementById('notification-container');
@@ -3912,20 +3646,16 @@ if (document.getElementById('next-step-btn')) {
 
         setTimeout(function () {
             toast.classList.remove('show');
-
             var onEnd = function () {
                 if (toast.parentNode) toast.parentNode.removeChild(toast);
                 toast.removeEventListener('transitionend', onEnd);
             };
-
             toast.addEventListener('transitionend', onEnd);
-
             setTimeout(function () {
                 if (toast.parentNode) toast.parentNode.removeChild(toast);
             }, 800);
         }, 3000);
     }
-
 
     function bindBackButton(selectedId) {
         var btn = document.getElementById('back-home-btn');
@@ -3965,7 +3695,6 @@ if (document.getElementById('next-step-btn')) {
         });
     }
 
-
     function initScrollReveal() {
         if (typeof IntersectionObserver === 'undefined') return;
 
@@ -3992,7 +3721,6 @@ if (document.getElementById('next-step-btn')) {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('revealed');
                     observer.unobserve(entry.target);
-
                     setTimeout(function () {
                         entry.target.classList.remove('reveal', 'revealed');
                     }, 1000);
