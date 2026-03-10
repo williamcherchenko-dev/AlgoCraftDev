@@ -28,6 +28,11 @@
 </head>
 
 <body>
+    <!-- FIX 7.4: Added page-loader for consistent load behavior across all pages -->
+    <div class="page-loader" id="page-loader" aria-hidden="true">
+        <div class="loader-spinner"></div>
+    </div>
+
     <div class="blob-wrapper">
         <div class="drop drop-1">
             <div class="drop-inner"></div>
@@ -61,10 +66,29 @@
         <p class="error-desc">
             The page you're looking for doesn't exist or has been moved. Let's get you back on track.
         </p>
-        <a href="index.html" class="error-btn">
+        <!-- FIX 7.3: Auto-redirect countdown -->
+        <p class="error-redirect-note" id="redirect-note">Redirecting to home in <strong id="redirect-count">10</strong>s…</p>
+        <a href="index.html" class="error-btn" id="error-home-btn">
             Back to Home
         </a>
     </main>
+    <script>
+        (function() {
+            var count = 10;
+            var el = document.getElementById('redirect-count');
+            var interval = setInterval(function() {
+                count--;
+                if (el) el.textContent = count;
+                if (count <= 0) {
+                    clearInterval(interval);
+                    window.location.replace('index.html');
+                }
+            }, 1000);
+            // Manual button cancels auto-redirect
+            var btn = document.getElementById('error-home-btn');
+            if (btn) btn.addEventListener('click', function() { clearInterval(interval); });
+        })();
+    </script>
     <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous" defer></script>
     <script src="main.js" defer></script>
 </body>
