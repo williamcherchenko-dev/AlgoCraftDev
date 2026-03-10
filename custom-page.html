@@ -45,11 +45,13 @@
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+        as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    </noscript>
+    <link rel="preload" href="main.css" as="style" fetchpriority="high">
     <link rel="stylesheet" href="main.css">
-
-    <!-- Styles -->
 </head>
 
 
@@ -173,9 +175,12 @@
                         <i data-lucide="pen-line"></i>
                     </div>
                     <div>
-                        <h2 id="notes-heading" class="custom-card-title">Anything not listed? <span class="notes-optional-tag">(Optional)</span></h2>
-                        <p class="custom-card-subtitle">Describe any custom features or requirements not covered above.</p>
-                        <p class="notes-scope-disclaimer">Requests not listed above will be reviewed and may affect pricing and timeline. We'll confirm everything before invoicing.</p>
+                        <h2 id="notes-heading" class="custom-card-title">Anything not listed? <span
+                                class="notes-optional-tag">(Optional)</span></h2>
+                        <p class="custom-card-subtitle">Describe any custom features or requirements not covered above.
+                        </p>
+                        <p class="notes-scope-disclaimer">Requests not listed above will be reviewed and may affect
+                            pricing and timeline. We'll confirm everything before invoicing.</p>
                     </div>
                 </div>
                 <div class="custom-notes-body">
@@ -207,9 +212,59 @@
     </main>
 
 
+    <footer class="site-footer" aria-label="Site footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="footer-logo">AlgoCraftDev</div>
+                <p>Custom website design and web development for businesses and creators. Fast, modern, and entirely
+                    yours.</p>
+                <div class="footer-socials">
+                    <a href="https://instagram.com/algocraftdev" target="_blank" rel="noopener noreferrer"
+                        aria-label="AlgoCraftDev on Instagram">
+                        <i data-lucide="instagram"></i>
+                    </a>
+                    <a href="mailto:support@algocraftdev.com" aria-label="Email AlgoCraftDev">
+                        <i data-lucide="mail"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="index.html#services">Business Websites</a></li>
+                    <li><a href="index.html#services">Landing Pages</a></li>
+                    <li><a href="index.html#services">E-Commerce Stores</a></li>
+                    <li><a href="index.html#services">Web Applications</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#process">Process</a></li>
+                    <li><a href="index.html#faq">FAQ</a></li>
+                    <li><a href="index.html#contact">Start a Project</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="terms.html">Terms of Service</a></li>
+                    <li><a href="mailto:support@algocraftdev.com">support@algocraftdev.com</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <span id="footer-year">2025</span> AlgoCraftDev. All rights reserved.</p>
+        </div>
+    </footer>
+
+
     <div id="notification-container" class="notification-container" aria-live="polite"></div>
 
     <!-- Scripts -->
+    <script>var fy = document.getElementById("footer-year"); if (fy) fy.textContent = new Date().getFullYear();</script>
     <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous" defer></script>
     <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js" defer crossorigin="anonymous"></script>
     <script src="main.js" defer></script>
