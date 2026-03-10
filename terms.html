@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="dns-prefetch" href="https://unpkg.com">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service | AlgoCraftDev</title>
     <meta name="description" content="Terms of Service for AlgoCraftDev web design and development services.">
@@ -33,13 +34,16 @@
     <meta name="twitter:description" content="Terms of Service for AlgoCraftDev web design and development services.">
 
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="main.css">
+
+    <!-- Styles -->
 </head>
 
-<body class="loading">
+<body>
 
     <div class="page-loader" id="page-loader" aria-hidden="true">
         <div class="loader-spinner"></div>
@@ -48,10 +52,8 @@
     <a href="#terms-content" class="skip-link">Skip to main content</a>
 
     <div class="blob-wrapper">
-        <div class="drop drop-1"><div class="drop-inner"></div><div class="drop-specular"></div><div class="drop-caustic"></div></div>
-        <div class="drop drop-2"><div class="drop-inner"></div><div class="drop-specular"></div><div class="drop-caustic"></div></div>
-        <div class="drop drop-3"><div class="drop-inner"></div><div class="drop-specular"></div><div class="drop-caustic"></div></div>
-        <div class="drop drop-4"><div class="drop-inner"></div><div class="drop-specular"></div><div class="drop-caustic"></div></div>
+        <div class="blob blob-purple"></div>
+        <div class="blob blob-cyan"></div>
     </div>
 
     <header class="custom-nav">
@@ -104,12 +106,11 @@
         <h2>Contact</h2>
         <!-- FIX: Fixed broken mailto link — was missing "support" prefix -->
         <p>Questions about these terms? Contact us at
-            <a href="mailto:support@algocraftdev.com" style="color: #22d3ee;">support@algocraftdev.com</a>
+            <a href="mailto:support@algocraftdev.com" style="color:#22d3ee;">support@algocraftdev.com</a>
         </p>
     </main>
 
-    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous" defer></script>
     <script src="main.js" defer></script>
 </body>
-
 </html>
