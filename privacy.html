@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
+    <link rel="dns-prefetch" href="https://unpkg.com">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy | AlgoCraftDev</title>
     <meta name="description" content="Privacy Policy for AlgoCraftDev — how we collect, use, and protect your data.">
@@ -34,15 +35,16 @@
     <meta name="twitter:description"
         content="Privacy Policy for AlgoCraftDev — how we collect, use, and protect your data.">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="main.css">
 
     <!-- Styles -->
 </head>
 
-<body class="loading">
+<body>
 
     <div class="page-loader" id="page-loader" aria-hidden="true">
         <div class="loader-spinner"></div>
@@ -51,10 +53,8 @@
     <a href="#privacy-content" class="skip-link">Skip to main content</a>
 
     <div class="blob-wrapper">
-        <div class="drop drop-1"><div class="drop-inner"></div><div class="drop-specular"></div><div class="drop-caustic"></div></div>
-        <div class="drop drop-2"><div class="drop-inner"></div><div class="drop-specular"></div><div class="drop-caustic"></div></div>
-        <div class="drop drop-3"><div class="drop-inner"></div><div class="drop-specular"></div><div class="drop-caustic"></div></div>
-        <div class="drop drop-4"><div class="drop-inner"></div><div class="drop-specular"></div><div class="drop-caustic"></div></div>
+        <div class="blob blob-purple"></div>
+        <div class="blob blob-cyan"></div>
     </div>
 
     <header class="custom-nav">
@@ -131,7 +131,7 @@
         </ul>
         <!-- FIXED: replaced Cloudflare-obfuscated email with real mailto link -->
         <p>To exercise any of these rights, contact us at
-            <a href="mailto:support@algocraftdev.com" style="color: #22d3ee;">support@algocraftdev.com</a>.
+            <a href="mailto:support@algocraftdev.com" style="color:#22d3ee;">support@algocraftdev.com</a>.
         </p>
 
         <h2>Children's Privacy</h2>
@@ -145,12 +145,11 @@
         <h2>Contact</h2>
         <!-- FIXED: replaced Cloudflare-obfuscated email with real mailto link -->
         <p>If you have questions about this Privacy Policy, contact us at
-            <a href="mailto:support@algocraftdev.com" style="color: #22d3ee;">support@algocraftdev.com</a>.
+            <a href="mailto:support@algocraftdev.com" style="color:#22d3ee;">support@algocraftdev.com</a>.
         </p>
     </main>
 
-    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous" defer></script>
     <script src="main.js" defer></script>
 </body>
-
 </html>
