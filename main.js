@@ -481,8 +481,15 @@
 
 
     function initEmailJS() {
+        // NOTE: EmailJS public key is intentionally client-side.
+        // FIX 1.5: Wrapped in try/catch for resilience if EmailJS fails to load.
+        // Recommendation: Also set rate limiting in your EmailJS dashboard to prevent abuse.
         if (typeof emailjs !== 'undefined') {
-            emailjs.init("UcOiwxLG_ZaSYkuFs");
+            try {
+                emailjs.init('UcOiwxLG_ZaSYkuFs');
+            } catch (e) {
+                console.error('EmailJS init failed:', e);
+            }
         }
     }
 
@@ -511,9 +518,17 @@
 
     function startLenis() {
         try {
+            // FIX 4.8: Fully disable Lenis when user prefers reduced motion
+            var prefersReducedMotion = window.matchMedia &&
+                window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
             var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+            if (prefersReducedMotion) {
+                // Skip Lenis entirely — native scroll is already instant
+                lenis = null;
+                return;
+            }
 
             lenis = new Lenis({
                 duration: 1.1,
@@ -1859,6 +1874,12 @@
                 hasError = true;
             }
 
+            // FIX 6.3: URL field validation — accept empty OR valid http/https URL
+            if (websiteUrl && !/^https?:\/\/.+/.test(websiteUrl)) {
+                showFieldError('website-url', 'Please include https:// at the start of the URL.');
+                hasError = true;
+            }
+
             if (!timeline) {
                 showFieldError('timeline', 'Please select a launch timeline.');
                 hasError = true;
@@ -1935,21 +1956,29 @@
 
             emailjs.send('service_qzgdeii', 'template_27cs3r5', templateParams)
                 .then(function () {
-                    showNotification('Message sent successfully! 🚀', 'success');
-                    form.reset();
-
-                    ['business-name','website-url','timeline','budget'].forEach(function(id) {
-                        var el = document.getElementById(id);
-                        if (el) el.value = '';
-                    });
-                    clearAllFieldErrors();
+                    // FIX 6.4: In-page success state — show success block, hide form
+                    var successBlock = document.getElementById('contact-form-success');
+                    if (successBlock) {
+                        form.style.display = 'none';
+                        successBlock.removeAttribute('hidden');
+                        successBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else {
+                        showNotification('Message sent successfully! We\'ll reply within 24 hours. 🚀', 'success');
+                        form.reset();
+                        ['business-name','website-url','timeline','budget'].forEach(function(id) {
+                            var el = document.getElementById(id);
+                            if (el) el.value = '';
+                        });
+                        clearAllFieldErrors();
+                    }
                     updateContactSummaryPill();
+                    // FIX 6.1: Do NOT re-enable button after success — prevents double-send
                 })
                 .catch(function (error) {
                     console.error('EmailJS Error:', error);
-                    showNotification('Failed to send. Please try again.', 'error');
-                })
-                .finally(function () {
+                    // FIX 6.4: Specific failure message with direct email fallback
+                    showNotification('Submission failed. Please email us directly at support@algocraftdev.com', 'error');
+                    // FIX 6.1: Re-enable on failure so user can retry
                     resetButton(btn, originalBtnText);
                 });
         });
@@ -2025,6 +2054,12 @@
                 hasError = true;
             } else if (!EMAIL_REGEX.test(emailVal)) {
                 showInquiryError('inquiry-email', 'Please enter a valid email.');
+                hasError = true;
+            }
+
+            // FIX 6.3: URL validation for inquiry form
+            if (currentUrlVal && !/^https?:\/\/.+/.test(currentUrlVal)) {
+                showInquiryError('inquiry-current-url', 'Please include https:// at the start of the URL.');
                 hasError = true;
             }
 
@@ -2119,16 +2154,25 @@
 
             emailjs.send('service_qzgdeii', 'template_27cs3r5', templateParams)
                 .then(function () {
-                    showNotification('Your project details have been received. We\'ll respond within 24 hours.', 'success');
-                    form.reset();
-                    if (charCount) charCount.textContent = '0';
-                    clearAllInquiryErrors();
+                    // FIX 6.4: In-page success for inquiry form
+                    var successBlock = document.getElementById('inquiry-form-success');
+                    if (successBlock) {
+                        form.style.display = 'none';
+                        successBlock.removeAttribute('hidden');
+                        successBlock.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else {
+                        showNotification('Your project details have been received. We\'ll respond within 24 hours.', 'success');
+                        form.reset();
+                        if (charCount) charCount.textContent = '0';
+                        clearAllInquiryErrors();
+                    }
+                    // FIX 6.1: Do NOT re-enable on success — prevents double-send
                 })
                 .catch(function (error) {
                     console.error('EmailJS Error:', error);
-                    showNotification('Failed to send. Please try again.', 'error');
-                })
-                .finally(function () {
+                    // FIX 6.4: Specific failure with direct email fallback
+                    showNotification('Submission failed. Please email us directly at support@algocraftdev.com', 'error');
+                    // FIX 6.1: Re-enable on failure so user can retry
                     resetButton(btn, originalText);
                 });
         });
@@ -2204,11 +2248,21 @@
         if (!blobWrapper || typeof IntersectionObserver === 'undefined') return;
 
         var blobs = blobWrapper.querySelectorAll('.blob');
+        // FIX 3.6: Also handle .drop elements — add will-change only when in view
+        var drops = blobWrapper.querySelectorAll('.drop');
 
         var observer = new IntersectionObserver(function (entries) {
             entries.forEach(function (entry) {
                 blobs.forEach(function (blob) {
                     blob.style.animationPlayState = entry.isIntersecting ? 'running' : 'paused';
+                });
+                // FIX 3.6: Apply will-change only when blob area is visible
+                drops.forEach(function (drop) {
+                    if (entry.isIntersecting) {
+                        drop.style.willChange = 'transform';
+                    } else {
+                        drop.style.willChange = 'auto';
+                    }
                 });
             });
         }, { threshold: 0 });
@@ -2573,7 +2627,12 @@
             if (group) group.classList.add('has-error');
         }
 
-        if (errorEl) errorEl.textContent = message;
+        // FIX 5.5: Clear first so aria-live re-announces even if same message
+        if (errorEl) {
+            errorEl.textContent = '';
+            // Small timeout ensures screen readers detect the change
+            setTimeout(function() { errorEl.textContent = message; }, 10);
+        }
     }
 
     function clearFieldError(fieldId) {
