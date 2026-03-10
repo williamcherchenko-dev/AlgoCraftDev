@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service | AlgoCraftDev</title>
     <meta name="description" content="Terms of Service for AlgoCraftDev web design and development services.">
@@ -27,20 +28,22 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://algocraftdev.com/terms.html">
     <meta property="og:image" content="https://algocraftdev.com/og-image.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Terms of Service | AlgoCraftDev">
     <meta name="twitter:description" content="Terms of Service for AlgoCraftDev web design and development services.">
+    <meta name="twitter:image" content="https://algocraftdev.com/og-image.jpg">
 
     <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"></noscript>
+    <link rel="preload" href="main.css" as="style" fetchpriority="high">
     <link rel="stylesheet" href="main.css">
-
-    <!-- Styles -->
 </head>
 
 <body>
@@ -52,8 +55,26 @@
     <a href="#terms-content" class="skip-link">Skip to main content</a>
 
     <div class="blob-wrapper">
-        <div class="blob blob-purple"></div>
-        <div class="blob blob-cyan"></div>
+        <div class="drop drop-1">
+            <div class="drop-inner"></div>
+            <div class="drop-specular"></div>
+            <div class="drop-caustic"></div>
+        </div>
+        <div class="drop drop-2">
+            <div class="drop-inner"></div>
+            <div class="drop-specular"></div>
+            <div class="drop-caustic"></div>
+        </div>
+        <div class="drop drop-3">
+            <div class="drop-inner"></div>
+            <div class="drop-specular"></div>
+            <div class="drop-caustic"></div>
+        </div>
+        <div class="drop drop-4">
+            <div class="drop-inner"></div>
+            <div class="drop-specular"></div>
+            <div class="drop-caustic"></div>
+        </div>
     </div>
 
     <header class="custom-nav">
@@ -80,7 +101,7 @@
         </ul>
 
         <h2>Revisions</h2>
-        <p>Each project phase includes 2–3 rounds of revisions as outlined in your selected package. Additional
+        <p>Each project phase includes 2&ndash;3 rounds of revisions as outlined in your selected package. Additional
             revisions beyond the included rounds may incur extra charges.</p>
 
         <h2>Ownership</h2>
@@ -104,10 +125,66 @@
             acceptance of the updated terms.</p>
 
         <h2>Contact</h2>
-        <!-- FIX: Fixed broken mailto link — was missing "support" prefix -->
         <p>Questions about these terms? Contact us at
-            <a href="/cdn-cgi/l/email-protection#52212722223d202612333e353d31203334263637247c313d3f" style="color:#22d3ee;"><span class="__cf_email__" data-cfemail="b3c0c6c3c3dcc1c7f3d2dfd4dcd0c1d2d5c7d7d6c59dd0dcde">[email&#160;protected]</span></a>
+            <a href="mailto:support@algocraftdev.com" style="color:#22d3ee;">support@algocraftdev.com</a>
         </p>
     </main>
 
-    <script data-cfasync="
+    <footer class="site-footer" aria-label="Site footer">
+        <div class="footer-container">
+            <div class="footer-brand">
+                <div class="footer-logo">AlgoCraftDev</div>
+                <p>Custom website design and web development for businesses and creators. Fast, modern, and entirely yours.</p>
+                <div class="footer-socials">
+                    <a href="https://instagram.com/algocraftdev" target="_blank" rel="noopener noreferrer" aria-label="AlgoCraftDev on Instagram">
+                        <i data-lucide="instagram"></i>
+                    </a>
+                    <a href="mailto:support@algocraftdev.com" aria-label="Email AlgoCraftDev">
+                        <i data-lucide="mail"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="footer-links">
+                <h3>Services</h3>
+                <ul>
+                    <li><a href="index.html#services">Business Websites</a></li>
+                    <li><a href="index.html#services">Landing Pages</a></li>
+                    <li><a href="index.html#services">E-Commerce Stores</a></li>
+                    <li><a href="index.html#services">Web Applications</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3>Company</h3>
+                <ul>
+                    <li><a href="index.html#about">About</a></li>
+                    <li><a href="index.html#process">Process</a></li>
+                    <li><a href="index.html#faq">FAQ</a></li>
+                    <li><a href="index.html#contact">Start a Project</a></li>
+                </ul>
+            </div>
+            <div class="footer-links">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="terms.html">Terms of Service</a></li>
+                    <li><a href="mailto:support@algocraftdev.com">support@algocraftdev.com</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <span id="footer-year">2025</span> AlgoCraftDev. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <div id="notification-container" class="notification-container" aria-live="polite"></div>
+
+    <script>
+        var fy = document.getElementById('footer-year');
+        if (fy) fy.textContent = new Date().getFullYear();
+    </script>
+    <script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js" crossorigin="anonymous" defer></script>
+    <script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js" crossorigin="anonymous" defer></script>
+    <script src="main.js" defer></script>
+</body>
+
+</html>
